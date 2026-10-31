@@ -123,6 +123,7 @@ Khi bạn vừa cài lại Windows hoặc chuyển sang máy tính mới:
 | **F05** | **Triển khai Core Engine** | Xây dựng các module thực thi tác vụ: đọc/ghi file, tương tác hệ thống, tự động hóa script, logging an toàn. | ⏳ Chờ thực hiện |
 | **F06** | **Giao diện / CLI điều khiển Agent** | Xây dựng CLI hoặc UI để người dùng ra lệnh và tương tác với Agent. | ⏳ Chờ thực hiện |
 | **F07** | **3D Office Dashboard (God View / Isometric)** | Xây dựng giao diện web 3D Isometric / Top-down giám sát và điều khiển đội ngũ AI Agent (React Three Fiber, Drei, Three.js, Click-to-Move, GLTF & Animations, Backend Agent State). | ✅ Đã hoàn thành |
+| **F08** | **Bộ script khởi chạy tự động (Start Scripts)** | Tạo file `start.bat` và `start.ps1` tự động kiểm tra môi trường, cài đặt dependencies và mở trình duyệt chạy 3D Dashboard chỉ với 1 cú click. | ✅ Đã hoàn thành |
 
 ### 🚀 Việc Phải Làm Tiếp Theo (Next Steps)
 > 👉 **BƯỚC TIẾP THEO CHO DEV HOẶC AI:**
@@ -138,4 +139,5 @@ Khi bạn vừa cài lại Windows hoặc chuyển sang máy tính mới:
 | :--- | :--- | :--- | :--- |
 | **2026-11-01** | Thiết lập ban đầu & Chuẩn hóa dự án | - Kiểm tra repo, pull `README.md` từ GitHub `adwewecat/Agent_Full`.<br>- Tích hợp 42 skills từ `obra/superpowers` và `mattpocock/skills` vào `.agents/skills/`.<br>- Cài đặt plugin global trong Antigravity CLI.<br>- Tạo `GEMINI.md` làm bộ não quy tắc và nhật ký.<br>- Tạo `.gitignore` chuẩn.<br>- Cập nhật `README.md` chi tiết.<br>- Đẩy commit ban đầu lên GitHub. | Antigravity AI (Gemini) |
 | **2026-11-01** | Bắt đầu & Hoàn thành F07: 3D Office Dashboard | - Khởi tạo dự án Vite + React + Three.js + @react-three/fiber + @react-three/drei.<br>- Sao chép model GLB vào `public/models/agent.glb`.<br>- Xây dựng Scene Isometric God-view với OrbitControls giới hạn góc, ánh sáng đổ bóng nhẹ.<br>- Xây dựng Component `<Agent />` với `useGLTF`, `useAnimations`, raycaster Click-to-Move, nội suy vị trí lerp & slerp rotation trong `useFrame`.<br>- Tích hợp hook `useAgentStore` quản lý trạng thái Backend Agent State, tự động đổi animation khi backend cập nhật.<br>- Build production test thành công 100% (`tsc && vite build`). | Antigravity AI (Gemini) |
+| **2026-11-01** | Hoàn thành F08: Tạo Start Scripts | - Tạo `start.bat` cho Windows Command Prompt / Double-click trực tiếp từ File Explorer.<br>- Tạo `start.ps1` cho Windows PowerShell.<br>- Tự động kiểm tra cài đặt Node.js và thư mục `node_modules`, tự động kích hoạt `npm run dev` tại cổng `http://localhost:3000`. | Antigravity AI (Gemini) |
 

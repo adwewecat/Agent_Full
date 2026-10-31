@@ -42,3 +42,4 @@ export interface WorkstationData {
   /** ID của Agent đang ngồi làm việc tại trạm (nếu có) */
   occupiedBy?: string | null;
 }
+

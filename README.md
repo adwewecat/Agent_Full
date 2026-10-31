@@ -70,7 +70,17 @@ Khi vừa cài lại Windows hoặc clone sang máy tính mới:
    agy plugin install https://github.com/mattpocock/skills
    ```
 
-4. **Đọc tài liệu trung tâm**:
+4. **Khởi chạy nhanh 3D Dashboard**:
+   - Cách 1: Kích đúp vào file [`start.bat`](./start.bat) từ Windows Explorer.
+   - Cách 2: Chạy trong terminal PowerShell:
+     ```powershell
+     .\start.ps1
+     # hoặc
+     npm run dev
+     ```
+   - Ứng dụng sẽ tự động mở tại: `http://localhost:3000`
+
+5. **Đọc tài liệu trung tâm**:
    - Mở và đọc file [`GEMINI.md`](./GEMINI.md) để xem tiến độ hiện tại và danh sách các việc cần làm tiếp theo.
 
 ---
