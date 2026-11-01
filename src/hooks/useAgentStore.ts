@@ -16,7 +16,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     position: [-2.4, 0, -4.8],
     rotation: 0,
     type: 'shrine',
-    seatOffset: [0, 0, 1.1], // Đứng trang nghiêm trên mặt sàn trước bàn thờ
+    seatOffset: [0, 0, 1.2], // Đứng trang nghiêm trên mặt sàn trước bàn thờ
     seatRotationOffset: Math.PI, // Quay mặt 180 độ hướng về phía tượng Phật (-Z)
     isSeated: false,
     occupiedBy: null
@@ -27,7 +27,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     position: [0, 0, -3.4],
     rotation: 0,
     type: 'coding',
-    seatOffset: [0, 0.48, -0.75], // Ngồi trên ghế Giám đốc phía sau bàn
+    seatOffset: [0, 0.66, -0.75], // Ngồi trên ghế Giám đốc phía sau bàn (Y = 0.66 bù trừ độ võng sit animation)
     seatRotationOffset: 0, // Quay mặt nhìn xuống bao quát phòng (+Z)
     isSeated: true,
     occupiedBy: 'agent_2'
@@ -38,7 +38,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     position: [-1.15, 0, 0.8],
     rotation: Math.PI / 2,
     type: 'research',
-    seatOffset: [0, 0.48, 0], // Ngồi trên ghế hội nghị bên trái nhìn vào bàn họp
+    seatOffset: [0, 0.625, 0], // Ngồi trên ghế xoay hội nghị bên trái nhìn vào bàn họp (Y = 0.625)
     seatRotationOffset: 0,
     isSeated: true,
     occupiedBy: 'agent_1'
@@ -49,7 +49,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     position: [-1.15, 0, 1.8],
     rotation: Math.PI / 2,
     type: 'coding',
-    seatOffset: [0, 0.48, 0],
+    seatOffset: [0, 0.625, 0],
     seatRotationOffset: 0,
     isSeated: true,
     occupiedBy: 'agent_3'
@@ -60,7 +60,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     position: [1.15, 0, 0.8],
     rotation: -Math.PI / 2,
     type: 'server',
-    seatOffset: [0, 0.48, 0], // Ngồi trên ghế hội nghị bên phải nhìn vào bàn họp
+    seatOffset: [0, 0.625, 0], // Ngồi trên ghế xoay hội nghị bên phải nhìn vào bàn họp (Y = 0.625)
     seatRotationOffset: 0,
     isSeated: true,
     occupiedBy: 'agent_4'
@@ -71,7 +71,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     position: [-4.6, 0, 0.6],
     rotation: Math.PI / 2,
     type: 'lounge',
-    seatOffset: [0, 0.42, 0], // Ngồi trên đệm Sofa kem Taupe
+    seatOffset: [0, 0.55, 0], // Ngồi trên đệm Sofa kem Taupe (Y = 0.55)
     seatRotationOffset: 0,
     isSeated: true,
     occupiedBy: null
@@ -82,12 +82,20 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     position: [4.6, 0, 0.6],
     rotation: -Math.PI / 2,
     type: 'lounge',
-    seatOffset: [0, 0.42, 0],
+    seatOffset: [0, 0.55, 0],
     seatRotationOffset: 0,
     isSeated: true,
     occupiedBy: null
   }
 ];
+
+// Bản đồ vị trí trạm làm việc mặc định cho từng nhân sự
+export const HOME_STATIONS: Record<string, string> = {
+  agent_1: 'station_research',
+  agent_2: 'station_director',
+  agent_3: 'station_qa',
+  agent_4: 'station_server'
+};
 
 // Tính toán tọa độ ban đầu chuẩn xác cho từng Agent dựa trên trạm làm việc của họ
 const initialAxel = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[1]);
@@ -415,7 +423,7 @@ export function useAgentStore() {
    * Cập nhật vị trí hiện tại khi Agent di chuyển hoàn tất
    */
   const completeMovement = useCallback(
-    (id: string, finalPosition: [number, number, number], nextStatus: AgentStatus = 'idle') => {
+    (id: string, finalPosition: [number, number, number]) => {
       setAgents((prev) => {
         const targetAgent = prev.find((a) => a.id === id);
         if (!targetAgent) return prev;
@@ -430,19 +438,18 @@ export function useAgentStore() {
           );
 
           // Nếu có trạm đang chờ đến sau khi bái Phật, tự động chuyển sang trạm đó sau 2.8s
-          if (targetAgent.pendingStationId && targetAgent.pendingStationId !== 'station_buddha') {
-            const destStationId = targetAgent.pendingStationId;
-            setTimeout(() => {
-              dispatchRef.current(id, destStationId, false);
-            }, 2800);
-          }
+          const destStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+          setTimeout(() => {
+            dispatchRef.current(id, destStationId, false);
+          }, 2800);
 
           return prev.map((agent) =>
             agent.id === id
               ? {
                   ...agent,
-                  position: finalPosition,
+                  position: [finalPosition[0], 0, finalPosition[2]],
                   targetPosition: null,
+                  isSeated: false, // Đứng trang nghiêm trên mặt sàn, không ngồi
                   status: 'praying',
                   blessed: true,
                   thoughtIcon: '🙏',
@@ -453,46 +460,62 @@ export function useAgentStore() {
           );
         }
 
-        // 2. Nếu Agent bước tới trạm làm việc thông thường
-        const isAtStation = Boolean(targetAgent.currentStationId);
-        const resolvedStatus = isAtStation ? 'working' : nextStatus;
-        const isWorking = resolvedStatus === 'working';
-        const newIcon = isWorking
-          ? targetAgent.id === 'agent_1'
-            ? '🔍'
-            : targetAgent.id === 'agent_2'
-            ? '💻'
-            : targetAgent.id === 'agent_3'
-            ? '🛡️'
-            : '⚡'
-          : '☕';
-        const newThought = isWorking
-          ? targetAgent.blessed
-            ? '✨ Được Đức Phật phù hộ: 0% Bug, 100% Green Test!'
-            : 'Đang tập trung làm việc tại trạm...'
-          : 'Nghỉ ngơi, ngắm cảnh văn phòng...';
+        // 2. Nếu Agent bước tới trạm làm việc (ghế Giám đốc, ghế hội nghị, sofa)
+        const currentStation = targetAgent.currentStationId
+          ? workstations.find((s) => s.id === targetAgent.currentStationId)
+          : null;
 
+        if (currentStation) {
+          const newIcon =
+            targetAgent.id === 'agent_1'
+              ? '🔍'
+              : targetAgent.id === 'agent_2'
+              ? '💻'
+              : targetAgent.id === 'agent_3'
+              ? '🛡️'
+              : '⚡';
+
+          const newThought = targetAgent.blessed
+            ? '✨ Được Đức Phật phù hộ: 0% Bug, 100% Green Test!'
+            : 'Đang tập trung làm việc tại trạm...';
+
+          return prev.map((agent) =>
+            agent.id === id
+              ? {
+                  ...agent,
+                  position: finalPosition,
+                  targetPosition: null,
+                  isSeated: currentStation.isSeated, // Ngồi ghế nếu trạm là ghế, đứng nếu là trạm đứng
+                  status: 'working',
+                  thoughtIcon: newIcon,
+                  thoughtText: newThought,
+                  currentTask: targetAgent.blessed
+                    ? 'Đang thực thi tác vụ (Có phước lành Phật hộ trì)...'
+                    : 'Đang thực thi tác vụ tại trạm...'
+                }
+              : agent
+          );
+        }
+
+        // 3. Nếu Agent bước tới vị trí tự do trên sàn nhà (Click trên sàn)
         return prev.map((agent) =>
           agent.id === id
             ? {
                 ...agent,
-                position: finalPosition,
+                position: [finalPosition[0], 0, finalPosition[2]], // Luôn tiếp xúc mặt sàn tại Y = 0
                 targetPosition: null,
-                status: resolvedStatus,
-                thoughtIcon: newIcon,
-                thoughtText: newThought,
-                currentTask: isWorking
-                  ? targetAgent.blessed
-                    ? 'Đang thực thi tác vụ (Có phước lành Phật hộ trì)...'
-                    : 'Đang thực thi tác vụ tại trạm...'
-                  : 'Đang ở trạng thái nghỉ (Idle)'
+                isSeated: false, // Tuyệt đối không ngồi trên mặt sàn trần
+                status: 'idle', // Đứng thẳng phong thái đĩnh đạc (idle)
+                thoughtIcon: '☕',
+                thoughtText: 'Dạo quanh văn phòng ngắm cảnh...',
+                currentTask: 'Nghỉ ngơi, ngắm cảnh văn phòng'
               }
             : agent
         );
       });
       setClickTarget(null);
     },
-    [addDialogue]
+    [addDialogue, workstations]
   );
 
   /**
@@ -506,12 +529,12 @@ export function useAgentStore() {
       '🙏'
     );
 
-    // 4 vị trí xếp hàng ngay ngắn trước bàn thờ Phật [-0.5, 0, -5.4]
+    // 4 vị trí xếp hàng ngay ngắn trước bàn thờ Phật [-2.4, 0, -4.8], hoàn toàn thoáng đãng, không vướng bàn ghế
     const prayerLine: [number, number, number][] = [
-      [-1.8, 0, -4.1],
-      [-0.6, 0, -4.1],
-      [0.6, 0, -4.1],
-      [1.8, 0, -4.1]
+      [-2.8, 0, -3.6],
+      [-2.0, 0, -3.6],
+      [-2.8, 0, -2.8],
+      [-2.0, 0, -2.8]
     ];
 
     setAgents((prev) =>
@@ -523,7 +546,7 @@ export function useAgentStore() {
           targetRotation: Math.PI, // Quay mặt 180 độ nhìn thẳng vào tượng Phật (-Z)
           isSeated: false,
           currentStationId: 'station_buddha',
-          pendingStationId: agent.currentStationId || 'station_coding',
+          pendingStationId: agent.currentStationId || HOME_STATIONS[agent.id] || 'station_director',
           status: 'moving',
           thoughtIcon: '🙏',
           thoughtText: 'Cùng cả đội đi dâng hương bái Phật...',

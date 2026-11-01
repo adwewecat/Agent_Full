@@ -36,7 +36,7 @@ export interface AgentProps {
   thoughtText?: string;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
-  onArrival?: (id: string, finalPosition: [number, number, number], nextStatus: AgentStatus) => void;
+  onArrival?: (id: string, finalPosition: [number, number, number]) => void;
   modelUrl?: string;
 }
 
@@ -195,14 +195,14 @@ function AgentModel({
     if (status === 'moving') {
       targetClipName = animationMap.walk;
     } else if (status === 'praying') {
-      // Khi bái Phật: phát clip gật đầu vái lạy (emote-yes) hoặc chắp tay (holding-both)
+      // Khi bái Phật: phát clip gật đầu vái lạy trang nghiêm (emote-yes)
       targetClipName = animationMap.pray;
-    } else if (status === 'working' || status === 'reviewing') {
-      // Khi ngồi ghế: chơi animation sit; khi đứng trước tủ server/arcade: chơi typing/interact
-      targetClipName = isSeated ? animationMap.sit : animationMap.typing;
+    } else if (isSeated) {
+      // Khi ngồi ghế (Ghế Giám đốc, ghế xoay hội nghị, sofa VIP)
+      targetClipName = animationMap.sit;
     } else {
-      // Khi nghỉ (Idle): nếu ngồi trên sofa thì ngồi, nếu ở sàn thì đứng
-      targetClipName = isSeated ? animationMap.sit : animationMap.idle;
+      // Khi đứng tự do trên sàn: luôn đứng phong thái đĩnh đạc (idle), tuyệt đối không ngồi bệt trên sàn
+      targetClipName = animationMap.idle;
     }
 
     if (targetClipName && actions[targetClipName]) {
@@ -217,30 +217,37 @@ function AgentModel({
     }
   }, [status, isSeated, actions, animationMap]);
 
-  // useFrame xử lý di chuyển Lerp, xoay người và bù trừ cao độ ngồi ghế chuẩn xác
+  // useFrame xử lý di chuyển Lerp 2D trên sàn, xoay người và bù trừ cao độ ngồi ghế chuẩn xác
   useFrame((_, delta) => {
     if (!group.current) return;
 
     if (targetPosition) {
       const targetVec = new THREE.Vector3(...targetPosition);
-      const dist = currentPos.current.distanceTo(targetVec);
+      // Tính khoảng cách ngang 2D trên mặt sàn (X, Z) để bước đi tự nhiên
+      const diffX = targetVec.x - currentPos.current.x;
+      const diffZ = targetVec.z - currentPos.current.z;
+      const dist2D = Math.hypot(diffX, diffZ);
 
-      if (dist > 0.05) {
+      if (dist2D > 0.05) {
         // Tốc độ di chuyển bước chân tự nhiên
         const moveSpeed = 3.2;
-        const moveStep = Math.min(dist, moveSpeed * delta);
-        const dir = targetVec.clone().sub(currentPos.current).normalize();
-        currentPos.current.add(dir.multiplyScalar(moveStep));
+        const moveStep = Math.min(dist2D, moveSpeed * delta);
+        const dirX = diffX / dist2D;
+        const dirZ = diffZ / dist2D;
+
+        currentPos.current.x += dirX * moveStep;
+        currentPos.current.z += dirZ * moveStep;
+        currentPos.current.y = 0; // Khi đang bước đi, luôn ở cao độ sàn Y = 0
 
         // Xoay mặt hướng theo chiều bước đi
-        const angle = Math.atan2(dir.x, dir.z);
+        const angle = Math.atan2(dirX, dirZ);
         group.current.rotation.y = THREE.MathUtils.lerp(
           group.current.rotation.y,
           angle,
           delta * 12
         );
 
-        // Khi đang di chuyển, độ cao chân tiếp xúc mặt sàn tại Y = 0
+        // Vị trí khi di chuyển luôn tiếp xúc mặt sàn tại Y = 0
         group.current.position.set(currentPos.current.x, 0, currentPos.current.z);
       } else {
         // Đã bước tới điểm đích an toàn
@@ -252,17 +259,16 @@ function AgentModel({
         }
 
         if (onArrival) {
-          const nextStatus = status === 'praying' ? 'working' : 'working';
-          onArrival(id, [targetVec.x, targetVec.y, targetVec.z], nextStatus);
+          onArrival(id, [targetVec.x, targetVec.y, targetVec.z]);
         }
       }
     } else {
-      // Đang ở trạng thái cố định tại trạm làm việc
+      // Đang ở trạng thái cố định tại trạm làm việc hoặc trên sàn
       const [destX, destY, destZ] = position;
       currentPos.current.set(destX, destY, destZ);
       group.current.position.set(destX, destY, destZ);
 
-      // Nếu có góc xoay chỉ định sẵn (hướng mặt vào màn hình máy tính), giữ vững góc đó
+      // Nếu có góc xoay chỉ định sẵn, giữ vững góc đó
       if (targetRotation !== undefined && targetRotation !== null) {
         group.current.rotation.y = THREE.MathUtils.lerp(
           group.current.rotation.y,

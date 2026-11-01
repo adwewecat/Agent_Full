@@ -11,7 +11,7 @@ import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
-import { AgentData, WorkstationData, AgentStatus } from '../types/agent';
+import { AgentData, WorkstationData } from '../types/agent';
 import { Agent } from './Agent';
 import { OfficeEnvironment } from './OfficeEnvironment';
 import { Workstation } from './Workstation';
@@ -26,7 +26,7 @@ interface OfficeSceneProps {
   clickTarget: [number, number, number] | null;
   onSelectAgent: (id: string | null) => void;
   onFloorClick: (point: [number, number, number]) => void;
-  onArrival: (id: string, finalPosition: [number, number, number], nextStatus: AgentStatus) => void;
+  onArrival: (id: string, finalPosition: [number, number, number]) => void;
   onSelectWorkstation: (stationId: string) => void;
   onPetCat?: () => void;
   onPray?: () => void;

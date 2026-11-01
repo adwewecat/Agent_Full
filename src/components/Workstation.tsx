@@ -25,8 +25,6 @@ export function Workstation({ data, onSelectStation }: WorkstationProps) {
     return null;
   }
 
-  const isLounge = type === 'lounge';
-
   return (
     <group
       position={position}
@@ -41,52 +39,17 @@ export function Workstation({ data, onSelectStation }: WorkstationProps) {
         if (onSelectStation) onSelectStation(id);
       }}
     >
-      {/* 💻 Thiết bị công nghệ tại vị trí làm việc bàn họp (Conference Laptop & Desk Props) */}
-      {!isLounge && (
-        <group position={[0.42, 0.74, 0]}>
-          {/* Laptop mỏng màu Space Gray */}
-          <group position={[0, 0.015, 0]}>
-            {/* Thân máy dưới */}
-            <mesh castShadow>
-              <boxGeometry args={[0.34, 0.012, 0.24]} />
-              <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.3} />
-            </mesh>
-            {/* Màn hình mở nghiêng 110 độ */}
-            <group position={[-0.16, 0.006, 0]} rotation={[0, 0, 1.2]}>
-              <mesh castShadow>
-                <boxGeometry args={[0.008, 0.24, 0.34]} />
-                <meshStandardMaterial color="#1e293b" metalness={0.9} />
-              </mesh>
-              {/* Mặt màn hình hiển thị code phát sáng nhẹ */}
-              <mesh position={[0.005, 0, 0]}>
-                <planeGeometry args={[0.22, 0.32]} />
-                <meshBasicMaterial color="#0284c7" />
-              </mesh>
-            </group>
-          </group>
+      {/* Vùng cảm ứng click & Vòng hiển thị tương tác tinh tế khi rê chuột */}
+      <mesh position={[0, 0.45, 0]}>
+        <boxGeometry args={[0.9, 0.8, 0.9]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
 
-          {/* Sổ tay da cao cấp & Bút ký */}
-          <mesh position={[0, 0.012, -0.22]}>
-            <boxGeometry args={[0.2, 0.015, 0.14]} />
-            <meshStandardMaterial color="#78350f" roughness={0.7} />
-          </mesh>
-          <mesh position={[0.08, 0.022, -0.22]}>
-            <cylinderGeometry args={[0.004, 0.004, 0.12, 8]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.9} />
-          </mesh>
-
-          {/* Ly nước gốm sứ trắng thanh lịch */}
-          <group position={[0.18, 0.04, 0.2]}>
-            <mesh castShadow>
-              <cylinderGeometry args={[0.035, 0.03, 0.075, 16]} />
-              <meshStandardMaterial color="#f8fafc" roughness={0.2} />
-            </mesh>
-            <mesh position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-              <circleGeometry args={[0.028, 16]} />
-              <meshStandardMaterial color="#27180e" roughness={0.1} />
-            </mesh>
-          </group>
-        </group>
+      {isHovered && (
+        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.45, 0.52, 32]} />
+          <meshBasicMaterial color="#38bdf8" transparent opacity={0.8} />
+        </mesh>
       )}
 
       {/* 🏷️ Tên trạm nổi trên 3D: Chỉ hiển thị khi rê chuột vào để không che khuất không gian */}

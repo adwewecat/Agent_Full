@@ -9,10 +9,7 @@
  * - Bàn hội nghị họp nhóm gỗ sồi lớn trung tâm kèm 8 ghế xoay da đen chân sao mạ chrome.
  * - Khu sofa VIP tiếp khách bọc da màu kem taupe êm ái hai bên phòng kèm bàn trà gỗ sồi.
  * - Cửa sổ kính lớn đón nắng tự nhiên bên trái, cửa ra vào bên phải, tranh biểu đồ tổ chức treo tường.
- * - Lan can tầng lửng Mezzanine viền xanh dương ở tiền cảnh tạo góc nhìn God-view chân thực.
  */
-
-import * as THREE from 'three';
 
 export function OfficeEnvironment() {
   return (
@@ -40,9 +37,6 @@ export function OfficeEnvironment() {
 
       {/* 8. Cây xanh văn phòng trong chậu gốm sứ trắng thanh lịch */}
       <OfficePlants />
-
-      {/* 9. Lan can tầng lửng Mezzanine viền xanh dương ở tiền cảnh (Foreground Railing) */}
-      <MezzanineForeground />
     </group>
   );
 }
@@ -472,6 +466,71 @@ function ConferenceTableArea() {
         <meshStandardMaterial color="#78350f" />
       </mesh>
 
+      {/* 💻 Thiết bị công nghệ đặt sẵn trên mặt bàn hội nghị trước các vị trí ghế ngồi */}
+      {[-1.0, 0, 1.0].map((z, idx) => (
+        <group key={`props-${idx}`}>
+          {/* Laptop bên trái quay màn hình hướng về ghế trái (-X) */}
+          <group position={[-0.48, 0.752, z]} rotation={[0, Math.PI / 2, 0]}>
+            <mesh castShadow>
+              <boxGeometry args={[0.3, 0.012, 0.22]} />
+              <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.3} />
+            </mesh>
+            <group position={[0, 0.006, -0.1]} rotation={[-1.2, 0, 0]}>
+              <mesh castShadow>
+                <boxGeometry args={[0.3, 0.22, 0.008]} />
+                <meshStandardMaterial color="#1e293b" metalness={0.9} />
+              </mesh>
+              <mesh position={[0, 0, 0.005]}>
+                <planeGeometry args={[0.28, 0.2]} />
+                <meshBasicMaterial color="#0284c7" />
+              </mesh>
+            </group>
+          </group>
+
+          {/* Sổ tay ghi chép bên trái */}
+          <mesh position={[-0.48, 0.754, z + 0.22]} rotation={[0, 0.1, 0]}>
+            <boxGeometry args={[0.16, 0.01, 0.12]} />
+            <meshStandardMaterial color="#78350f" roughness={0.6} />
+          </mesh>
+
+          {/* Ly nước gốm sứ bên trái */}
+          <mesh position={[-0.48, 0.78, z - 0.22]} castShadow>
+            <cylinderGeometry args={[0.03, 0.025, 0.06, 16]} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.2} />
+          </mesh>
+
+          {/* Laptop bên phải quay màn hình hướng về ghế phải (+X) */}
+          <group position={[0.48, 0.752, z]} rotation={[0, -Math.PI / 2, 0]}>
+            <mesh castShadow>
+              <boxGeometry args={[0.3, 0.012, 0.22]} />
+              <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.3} />
+            </mesh>
+            <group position={[0, 0.006, -0.1]} rotation={[-1.2, 0, 0]}>
+              <mesh castShadow>
+                <boxGeometry args={[0.3, 0.22, 0.008]} />
+                <meshStandardMaterial color="#1e293b" metalness={0.9} />
+              </mesh>
+              <mesh position={[0, 0, 0.005]}>
+                <planeGeometry args={[0.28, 0.2]} />
+                <meshBasicMaterial color="#10b981" />
+              </mesh>
+            </group>
+          </group>
+
+          {/* Sổ tay ghi chép bên phải */}
+          <mesh position={[0.48, 0.754, z + 0.22]} rotation={[0, -0.1, 0]}>
+            <boxGeometry args={[0.16, 0.01, 0.12]} />
+            <meshStandardMaterial color="#1e293b" roughness={0.6} />
+          </mesh>
+
+          {/* Ly nước gốm sứ bên phải */}
+          <mesh position={[0.48, 0.78, z - 0.22]} castShadow>
+            <cylinderGeometry args={[0.03, 0.025, 0.06, 16]} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.2} />
+          </mesh>
+        </group>
+      ))}
+
       {/* 💺 8 GHẾ XOAY DA ĐEN CHÂN SAO BỐ TRÍ CHUẨN XÁC QUANH BÀN HỘP */}
       {/* Ghế đầu bàn phía trên (quay nhìn xuống +Z) */}
       <ConferenceChair position={[0, 0, -2.1]} rotation={0} />
@@ -692,27 +751,6 @@ function OfficePlants() {
           <meshStandardMaterial color="#16a34a" roughness={0.5} />
         </mesh>
       </group>
-    </group>
-  );
-}
-
-/**
- * 🏛️ 9. Lan can tầng lửng Mezzanine viền xanh dương ở tiền cảnh (Foreground Balcony Railing)
- * Tái hiện chính xác góc máy chụp từ tầng 2 nhìn xuống với gờ ban công uốn cong
- */
-function MezzanineForeground() {
-  return (
-    <group position={[0, 4.2, 6.2]}>
-      {/* Bờ tường ban công cong màu trắng */}
-      <mesh position={[0, -0.6, 0]} rotation={[0, 0, 0]}>
-        <cylinderGeometry args={[8.5, 8.5, 1.2, 48, 1, true, Math.PI * 0.85, Math.PI * 0.3]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.2} side={THREE.DoubleSide} />
-      </mesh>
-      {/* Viền tay vịn ban công màu xanh dương Sky Blue đặc trưng */}
-      <mesh position={[0, 0.02, 0]}>
-        <cylinderGeometry args={[8.52, 8.52, 0.08, 48, 1, true, Math.PI * 0.85, Math.PI * 0.3]} />
-        <meshStandardMaterial color="#0284c7" roughness={0.3} side={THREE.DoubleSide} />
-      </mesh>
     </group>
   );
 }
