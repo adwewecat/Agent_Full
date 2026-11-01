@@ -5,7 +5,7 @@
  * giải trừ mọi lỗi bug và nhận phước lành (Zero Bug Blessing) trước khi bắt tay vào làm việc.
  */
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -23,6 +23,7 @@ export function BuddhaShrine({
   onPray,
   isPrayingAny = false
 }: BuddhaShrineProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const haloRef = useRef<THREE.Mesh>(null);
   const smokeGroupRef = useRef<THREE.Group>(null);
   const lightRef = useRef<THREE.PointLight>(null);
@@ -77,7 +78,19 @@ export function BuddhaShrine({
   });
 
   return (
-    <group position={position} rotation={[0, rotation, 0]}>
+    <group
+      position={position}
+      rotation={[0, rotation, 0]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setIsHovered(true);
+      }}
+      onPointerOut={() => setIsHovered(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (onPray) onPray();
+      }}
+    >
       {/* 1. BÀN THỜ GỖ GỤ TRẦM ẤM (Altar Table) */}
       <group position={[0, 0, 0]}>
         {/* Mặt bàn thờ chính */}
@@ -380,46 +393,48 @@ export function BuddhaShrine({
         decay={2}
       />
 
-      {/* 8. THẺ THÔNG TIN TÂM LINH & NÚT TƯƠNG TÁC (HTML Badge) */}
-      <Html
-        position={[0, 2.3, 0]}
-        center
-        distanceFactor={14}
-        style={{ pointerEvents: 'auto' }}
-      >
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onPray) onPray();
-          }}
-          className="shrine-label-badge"
-          style={{
-            cursor: 'pointer',
-            padding: '6px 12px',
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95))',
-            color: '#ffffff',
-            boxShadow: '0 4px 18px rgba(245, 158, 11, 0.5), 0 2px 8px rgba(0,0,0,0.4)',
-            border: '1.5px solid #fef08a',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '2px',
-            whiteSpace: 'nowrap',
-            userSelect: 'none',
-            transform: 'scale(1)',
-            transition: 'transform 0.2s ease'
-          }}
+      {/* 8. THẺ THÔNG TIN TÂM LINH & NÚT TƯƠNG TÁC (Chỉ hiện khi rê chuột vào hoặc khi có Agent đang bái Phật) */}
+      {(isHovered || isPrayingAny) && (
+        <Html
+          position={[0, 2.3, 0]}
+          center
+          distanceFactor={14}
+          style={{ pointerEvents: 'auto' }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '12px', letterSpacing: '0.5px' }}>
-            <span>🙏</span>
-            <span>ĐÀI SEN BÁI PHẬT</span>
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onPray) onPray();
+            }}
+            className="shrine-label-badge"
+            style={{
+              cursor: 'pointer',
+              padding: '5px 12px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95))',
+              color: '#ffffff',
+              boxShadow: '0 4px 18px rgba(245, 158, 11, 0.5), 0 2px 8px rgba(0,0,0,0.4)',
+              border: '1.5px solid #fef08a',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+              transform: 'scale(1)',
+              transition: 'transform 0.2s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '11.5px', letterSpacing: '0.5px' }}>
+              <span>🙏</span>
+              <span>ĐÀI SEN BÁI PHẬT</span>
+            </div>
+            <div style={{ fontSize: '9.5px', color: '#fef3c7', fontWeight: 600 }}>
+              {isPrayingAny ? '✨ Đang truyền năng lượng an lạc...' : 'Cầu Bình An • Xóa Hết Lỗi Bug 0%'}
+            </div>
           </div>
-          <div style={{ fontSize: '10px', color: '#fef3c7', fontWeight: 600 }}>
-            {isPrayingAny ? '✨ Đang truyền năng lượng an lạc...' : 'Cầu Bình An • Xóa Hết Lỗi Bug 0%'}
-          </div>
-        </div>
-      </Html>
+        </Html>
+      )}
     </group>
   );
 }

@@ -6,7 +6,7 @@
  * trọng tâm hoạt ảnh (Sit Y Compensation) để không bao giờ bị ngồi dưới ghế hay chìm sàn.
  */
 
-import { useRef, useEffect, useMemo, Suspense } from 'react';
+import { useRef, useEffect, useMemo, useState, Suspense } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, useAnimations, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -145,6 +145,7 @@ function AgentModel({
   onArrival,
   modelUrl = '/models/agent.glb'
 }: AgentProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const group = useRef<THREE.Group>(null);
   const currentPos = useRef(new THREE.Vector3(...position));
 
@@ -299,6 +300,11 @@ function AgentModel({
     <group
       ref={group}
       position={position}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setIsHovered(true);
+      }}
+      onPointerOut={() => setIsHovered(false)}
       onClick={(e) => {
         e.stopPropagation();
         if (onSelect) onSelect(id);
@@ -346,27 +352,29 @@ function AgentModel({
         </mesh>
       )}
 
-      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘP THOẠI HÌNH CHỮ NHẬT (Rectangular Speech Box) */}
-      <Html
-        position={[0, isSeated ? 2.15 : 2.45, 0]}
-        center
-        distanceFactor={14}
-        style={{ pointerEvents: 'none' }}
-      >
-        <div className="thought-bubble-wrapper">
-          <div
-            className="thought-bubble"
-            style={{
-              borderColor: color,
-              boxShadow: `0 4px 18px ${color}44, 0 2px 8px rgba(0,0,0,0.5)`
-            }}
-          >
-            <span className="thought-icon">{thoughtIcon}</span>
-            <span className="thought-text">{thoughtText}</span>
+      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘP THOẠI HÌNH CHỮ NHẬT (Chỉ hiển thị khi Agent được chọn, rê chuột vào, hoặc đang bái Phật để giữ không gian sạch sẽ) */}
+      {(isSelected || isHovered || status === 'praying') && (
+        <Html
+          position={[0, isSeated ? 2.15 : 2.45, 0]}
+          center
+          distanceFactor={14}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="thought-bubble-wrapper">
+            <div
+              className="thought-bubble"
+              style={{
+                borderColor: color,
+                boxShadow: `0 4px 18px ${color}44, 0 2px 8px rgba(0,0,0,0.5)`
+              }}
+            >
+              <span className="thought-icon">{thoughtIcon}</span>
+              <span className="thought-text">{thoughtText}</span>
+            </div>
+            <div className="thought-arrow" style={{ borderTopColor: color }} />
           </div>
-          <div className="thought-arrow" style={{ borderTopColor: color }} />
-        </div>
-      </Html>
+        </Html>
+      )}
 
       {/* 🏷️ Thẻ tên nhỏ gọn và tinh tế nổi trên đầu Agent (Đã tinh giản tối đa chữ) */}
       <Html

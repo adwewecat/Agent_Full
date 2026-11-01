@@ -5,6 +5,7 @@
  * không bao giờ để nhân vật bị chìm dưới gầm ghế, ngồi lên bàn hay kẹt vào thùng máy server.
  */
 
+import { useState } from 'react';
 import { Html } from '@react-three/drei';
 import { WorkstationData } from '../types/agent';
 
@@ -15,6 +16,7 @@ interface WorkstationProps {
 
 export function Workstation({ data, onSelectStation }: WorkstationProps) {
   const { id, name, position, rotation, type, occupiedBy } = data;
+  const [isHovered, setIsHovered] = useState(false);
 
   // Nếu là trạm đài sen bái Phật, giao diện 3D được render chuyên biệt bởi <BuddhaShrine />
   if (type === 'shrine') {
@@ -29,6 +31,11 @@ export function Workstation({ data, onSelectStation }: WorkstationProps) {
     <group
       position={position}
       rotation={[0, rotation, 0]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setIsHovered(true);
+      }}
+      onPointerOut={() => setIsHovered(false)}
       onClick={(e) => {
         e.stopPropagation();
         if (onSelectStation) onSelectStation(id);
@@ -246,30 +253,33 @@ export function Workstation({ data, onSelectStation }: WorkstationProps) {
         </group>
       )}
 
-      {/* 🏷️ Tên trạm nổi trên 3D */}
-      <Html
-        position={[0, isServer ? 2.4 : isArcade ? 2.1 : 1.45, isServer || isArcade ? 0.3 : 0]}
-        center
-        distanceFactor={16}
-        style={{ pointerEvents: 'none' }}
-      >
-        <div
-          style={{
-            padding: '3px 10px',
-            borderRadius: '16px',
-            backgroundColor: occupiedBy ? 'rgba(16, 185, 129, 0.25)' : 'rgba(15, 23, 42, 0.85)',
-            border: `1.5px solid ${occupiedBy ? '#10b981' : '#64748b'}`,
-            fontSize: '10.5px',
-            fontWeight: 700,
-            color: occupiedBy ? '#34d399' : '#e2e8f0',
-            whiteSpace: 'nowrap',
-            backdropFilter: 'blur(6px)',
-            boxShadow: occupiedBy ? '0 0 10px rgba(16, 185, 129, 0.4)' : '0 2px 8px rgba(0,0,0,0.3)'
-          }}
+      {/* 🏷️ Tên trạm nổi trên 3D: Chỉ hiển thị khi rê chuột vào để không che khuất không gian */}
+      {isHovered && (
+        <Html
+          position={[0, isServer ? 2.4 : isArcade ? 2.1 : 1.45, isServer || isArcade ? 0.3 : 0]}
+          center
+          distanceFactor={16}
+          style={{ pointerEvents: 'none' }}
         >
-          {name} {occupiedBy ? '• (Đang hoạt động)' : '• (Sẵn sàng)'}
-        </div>
-      </Html>
+          <div
+            style={{
+              padding: '3px 8px',
+              borderRadius: '12px',
+              backgroundColor: occupiedBy ? 'rgba(16, 185, 129, 0.92)' : 'rgba(15, 23, 42, 0.92)',
+              border: `1.5px solid ${occupiedBy ? '#34d399' : '#94a3b8'}`,
+              fontSize: '10px',
+              fontWeight: 700,
+              color: '#ffffff',
+              whiteSpace: 'nowrap',
+              backdropFilter: 'blur(6px)',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.45)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {name} {occupiedBy ? '• (Đang hoạt động)' : '• (Sẵn sàng)'}
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
