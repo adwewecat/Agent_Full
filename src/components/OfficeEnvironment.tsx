@@ -11,6 +11,10 @@
  * - Cửa sổ kính lớn đón nắng tự nhiên bên trái, cửa ra vào bên phải, tranh biểu đồ tổ chức treo tường.
  */
 
+import { useState, Suspense } from 'react';
+import { useTexture, Html } from '@react-three/drei';
+import { DynamicReportBoard } from './DynamicReportBoard';
+
 export function OfficeEnvironment() {
   return (
     <group>
@@ -139,19 +143,8 @@ function TwoToneWalls() {
 function BackWallDecor() {
   return (
     <group position={[0, 0, -5.5]}>
-      {/* 1. Bảng nỉ xanh lá cây viền gỗ ấm áp (Green Felt Bulletin Board) */}
-      <group position={[0, 2.7, 0]}>
-        {/* Khung viền gỗ sồi */}
-        <mesh castShadow>
-          <boxGeometry args={[3.4, 1.4, 0.04]} />
-          <meshStandardMaterial color="#b45309" roughness={0.5} />
-        </mesh>
-        {/* Mặt bảng xanh lá cây đậm sang trọng */}
-        <mesh position={[0, 0, 0.025]}>
-          <planeGeometry args={[3.2, 1.2]} />
-          <meshStandardMaterial color="#14532d" roughness={0.8} />
-        </mesh>
-      </group>
+      {/* 1. Bảng Báo Cáo Điều Hành Động (Dynamic Executive Dashboard) với biểu đồ & sóng Telemetry */}
+      <DynamicReportBoard position={[0, 2.7, 0]} />
 
       {/* 2. Biểu trưng mặt trời / Huân chương vàng kim phía trên bảng (Golden Emblem) */}
       <group position={[0, 3.8, 0.02]}>
@@ -257,43 +250,135 @@ function BookcaseCabinet({ position }: { position: [number, number, number] }) {
 /**
  * 🪟 4. Cửa sổ kính lớn lấy sáng bên trái & Cửa ra vào bên phải
  */
+function HotGirlPortrait() {
+  const texture = useTexture('/images/hot_girl.jpg');
+  return (
+    <mesh position={[0, 0, -0.012]}>
+      <planeGeometry args={[2.22, 2.02]} />
+      <meshBasicMaterial map={texture} toneMapped={false} />
+    </mesh>
+  );
+}
+
+function WindowWithMuse() {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <group
+      position={[-5.72, 3.2, -2.2]}
+      rotation={[0, Math.PI / 2, 0]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setIsHovered(true);
+      }}
+      onPointerOut={() => setIsHovered(false)}
+    >
+      {/* Khung cửa sổ trắng */}
+      <mesh castShadow>
+        <boxGeometry args={[2.4, 2.2, 0.06]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.2} />
+      </mesh>
+
+      {/* Ảnh Hot Girl xinh đẹp rạng rỡ đón nắng bên cửa sổ */}
+      <Suspense fallback={null}>
+        <HotGirlPortrait />
+      </Suspense>
+
+      {/* Kính trong suốt đón nắng ngập tràn bảo vệ */}
+      <mesh position={[0, 0, 0.01]}>
+        <planeGeometry args={[2.2, 2.0]} />
+        <meshPhysicalMaterial
+          color="#e0f2fe"
+          transmission={0.82}
+          opacity={0.25}
+          transparent
+          roughness={0.06}
+        />
+      </mesh>
+
+      {/* Nan chia ô cửa kính */}
+      {[-0.55, 0, 0.55].map((x, i) => (
+        <mesh key={i} position={[x, 0, 0.02]}>
+          <boxGeometry args={[0.03, 2.0, 0.02]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+      ))}
+      {[-0.5, 0, 0.5].map((y, i) => (
+        <mesh key={i} position={[0, y, 0.02]}>
+          <boxGeometry args={[2.2, 0.03, 0.02]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+      ))}
+
+      {/* Tooltip khi rê chuột vào Nàng thơ bên cửa sổ */}
+      {isHovered && (
+        <Html
+          position={[0, 1.3, 0.1]}
+          center
+          distanceFactor={16}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div
+            style={{
+              padding: '5px 12px',
+              borderRadius: '14px',
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              border: '1.5px solid #f472b6',
+              color: '#ffffff',
+              fontSize: '11px',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 4px 20px rgba(244, 114, 182, 0.45)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>🌸</span>
+            <span>Nàng Thơ Văn Phòng (Office Muse) • Luôn Tươi Cười Truyền Cảm Hứng!</span>
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+}
+
 function WindowsAndDoors() {
   return (
     <group>
-      {/* 2 Cửa sổ kính lớn chia ô trắng bên tường trái (Left Windows) */}
-      {[-2.2, 2.5].map((z, idx) => (
-        <group key={idx} position={[-5.72, 3.2, z]} rotation={[0, Math.PI / 2, 0]}>
-          {/* Khung cửa sổ trắng */}
-          <mesh castShadow>
-            <boxGeometry args={[2.4, 2.2, 0.06]} />
-            <meshStandardMaterial color="#ffffff" roughness={0.2} />
+      {/* Cửa sổ 1: Tích hợp hình ảnh Nàng thơ xinh đẹp đón nắng rực rỡ */}
+      <WindowWithMuse />
+
+      {/* Cửa sổ 2: Kính trong suốt đón nắng ban mai ngập tràn */}
+      <group position={[-5.72, 3.2, 2.5]} rotation={[0, Math.PI / 2, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[2.4, 2.2, 0.06]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0, 0.01]}>
+          <planeGeometry args={[2.2, 2.0]} />
+          <meshPhysicalMaterial
+            color="#e0f2fe"
+            transmission={0.92}
+            opacity={0.3}
+            transparent
+            roughness={0.05}
+          />
+        </mesh>
+        {[-0.55, 0, 0.55].map((x, i) => (
+          <mesh key={i} position={[x, 0, 0.02]}>
+            <boxGeometry args={[0.03, 2.0, 0.02]} />
+            <meshStandardMaterial color="#ffffff" />
           </mesh>
-          {/* Kính trong suốt đón nắng ngập tràn */}
-          <mesh position={[0, 0, 0.01]}>
-            <planeGeometry args={[2.2, 2.0]} />
-            <meshPhysicalMaterial
-              color="#e0f2fe"
-              transmission={0.92}
-              opacity={0.3}
-              transparent
-              roughness={0.05}
-            />
+        ))}
+        {[-0.5, 0, 0.5].map((y, i) => (
+          <mesh key={i} position={[0, y, 0.02]}>
+            <boxGeometry args={[2.2, 0.03, 0.02]} />
+            <meshStandardMaterial color="#ffffff" />
           </mesh>
-          {/* Nan chia ô cửa kính */}
-          {[-0.55, 0, 0.55].map((x, i) => (
-            <mesh key={i} position={[x, 0, 0.02]}>
-              <boxGeometry args={[0.03, 2.0, 0.02]} />
-              <meshStandardMaterial color="#ffffff" />
-            </mesh>
-          ))}
-          {[-0.5, 0, 0.5].map((y, i) => (
-            <mesh key={i} position={[0, y, 0.02]}>
-              <boxGeometry args={[2.2, 0.03, 0.02]} />
-              <meshStandardMaterial color="#ffffff" />
-            </mesh>
-          ))}
-        </group>
-      ))}
+        ))}
+      </group>
 
       {/* Bảng sơ đồ tổ chức treo tường bên trái */}
       <group position={[-5.72, 2.2, 0.2]} rotation={[0, Math.PI / 2, 0]}>

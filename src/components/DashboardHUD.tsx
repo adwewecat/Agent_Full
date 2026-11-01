@@ -31,6 +31,7 @@ interface DashboardHUDProps {
   onSimulateBackendEvent: () => void;
   onPetCat?: () => void;
   onTeamPrayer?: () => void;
+  onTeamChristianPrayer?: () => void;
 }
 
 export function DashboardHUD({
@@ -42,7 +43,8 @@ export function DashboardHUD({
   onDispatchToStation,
   onSimulateBackendEvent,
   onPetCat,
-  onTeamPrayer
+  onTeamPrayer,
+  onTeamChristianPrayer
 }: DashboardHUDProps) {
   const [showLogs, setShowLogs] = useState(true);
   const selectedAgent = agents.find((a) => a.id === selectedAgentId);
@@ -241,6 +243,21 @@ export function DashboardHUD({
           >
             <span>🙏</span>
             <span>Toàn Đội Bái Phật</span>
+          </button>
+
+          {/* Nút Toàn Đội Cầu Nguyện Trước Chúa & Thánh Giá */}
+          <button
+            className="hud-action-btn shrine"
+            onClick={onTeamChristianPrayer}
+            title="Cả đội ngũ Agent cùng đến trước Thánh Giá Chúa cầu nguyện bình an & vững bền!"
+            style={{
+              background: 'linear-gradient(135deg, rgba(253, 224, 71, 0.25), rgba(202, 138, 4, 0.35))',
+              border: '1.5px solid #fde047',
+              color: '#fef08a'
+            }}
+          >
+            <span>✝️</span>
+            <span>Cầu Nguyện Chúa</span>
           </button>
 
           {/* Nút vuốt ve GitCat */}

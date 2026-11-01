@@ -18,6 +18,7 @@ import { Workstation } from './Workstation';
 import { TargetMarker } from './TargetMarker';
 import { GitCat } from './GitCat';
 import { BuddhaShrine } from './BuddhaShrine';
+import { ChristianShrine } from './ChristianShrine';
 
 interface OfficeSceneProps {
   agents: AgentData[];
@@ -30,6 +31,7 @@ interface OfficeSceneProps {
   onSelectWorkstation: (stationId: string) => void;
   onPetCat?: () => void;
   onPray?: () => void;
+  onPrayChristian?: () => void;
   isPrayingAny?: boolean;
 }
 
@@ -44,6 +46,7 @@ export function OfficeScene({
   onSelectWorkstation,
   onPetCat,
   onPray,
+  onPrayChristian,
   isPrayingAny
 }: OfficeSceneProps) {
   return (
@@ -131,6 +134,14 @@ export function OfficeScene({
           position={[-2.4, 0, -4.8]}
           rotation={0}
           onPray={onPray}
+          isPrayingAny={isPrayingAny}
+        />
+
+        {/* 6.6. Bàn thờ Chúa & Cây Thánh Giá mạ vàng uy nghi (Christian Shrine đặt góc tường hậu bên phải) */}
+        <ChristianShrine
+          position={[2.4, 0, -4.8]}
+          rotation={0}
+          onPray={onPrayChristian}
           isPrayingAny={isPrayingAny}
         />
 

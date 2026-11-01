@@ -22,6 +22,7 @@ export function App() {
     completeMovement,
     dispatchToWorkstation,
     teamPrayer,
+    christianPrayer,
     simulateBackendEvent,
     addDialogue
   } = useAgentStore();
@@ -75,6 +76,7 @@ export function App() {
         onSelectWorkstation={handleSelectWorkstation}
         onPetCat={handlePetCat}
         onPray={teamPrayer}
+        onPrayChristian={christianPrayer}
         isPrayingAny={isPrayingAny}
       />
 
@@ -89,6 +91,7 @@ export function App() {
         onSimulateBackendEvent={simulateBackendEvent}
         onPetCat={handlePetCat}
         onTeamPrayer={teamPrayer}
+        onTeamChristianPrayer={christianPrayer}
       />
     </div>
   );

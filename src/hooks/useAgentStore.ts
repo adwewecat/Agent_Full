@@ -22,6 +22,17 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     occupiedBy: null
   },
   {
+    id: 'station_cross',
+    name: 'Bàn Thờ Chúa & Thánh Giá',
+    position: [2.4, 0, -4.8],
+    rotation: 0,
+    type: 'shrine',
+    seatOffset: [0, 0, 1.2], // Đứng trang nghiêm trên mặt sàn trước bàn thờ Chúa
+    seatRotationOffset: Math.PI, // Quay mặt 180 độ hướng về phía Thánh Giá (-Z)
+    isSeated: false,
+    occupiedBy: null
+  },
+  {
     id: 'station_director',
     name: 'Bàn Giám Đốc Axel',
     position: [0, 0, -3.4],
@@ -334,8 +345,8 @@ export function useAgentStore() {
       const currentAgent = agents.find((a) => a.id === agentId);
       if (!currentAgent) return;
 
-      // Nếu mục tiêu chính là Đài Sen Bái Phật, hoặc requirePrayer = false (đã bái rồi)
-      if (stationId === 'station_buddha' || !requirePrayer) {
+      // Nếu mục tiêu chính là Đài Sen Bái Phật, Bàn Thờ Chúa, hoặc requirePrayer = false (đã bái rồi)
+      if (stationId === 'station_buddha' || stationId === 'station_cross' || !requirePrayer) {
         const transform = getWorkstationSeatTransform(station);
 
         setAgents((prev) =>
@@ -460,6 +471,38 @@ export function useAgentStore() {
           );
         }
 
+        // 1.5. Nếu Agent bước tới trước bàn thờ Chúa & Thánh Giá
+        if (targetAgent.currentStationId === 'station_cross') {
+          addDialogue(
+            targetAgent.codename || targetAgent.name,
+            targetAgent.color,
+            '✝️ Đã thành kính cầu nguyện trước Thánh Giá Chúa: Cầu bình an, sáng suốt, hệ thống ổn định 100%!',
+            '✝️'
+          );
+
+          // Tự động trở về trạm làm việc sau 2.8s
+          const destStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+          setTimeout(() => {
+            dispatchRef.current(id, destStationId, false);
+          }, 2800);
+
+          return prev.map((agent) =>
+            agent.id === id
+              ? {
+                  ...agent,
+                  position: [finalPosition[0], 0, finalPosition[2]],
+                  targetPosition: null,
+                  isSeated: false,
+                  status: 'praying',
+                  blessed: true,
+                  thoughtIcon: '✝️',
+                  thoughtText: '✝️ Cầu Chúa ban phước • Bình an & Vững bền!',
+                  currentTask: 'Đang thành tâm cầu nguyện trước Thánh Giá Chúa...'
+                }
+              : agent
+          );
+        }
+
         // 2. Nếu Agent bước tới trạm làm việc (ghế Giám đốc, ghế hội nghị, sofa)
         const currentStation = targetAgent.currentStationId
           ? workstations.find((s) => s.id === targetAgent.currentStationId)
@@ -557,6 +600,44 @@ export function useAgentStore() {
   }, [addDialogue]);
 
   /**
+   * Toàn thể đội ngũ AI Agent cùng nhau xếp hàng trang nghiêm trước Bàn Thờ Chúa & Thánh Giá cầu nguyện
+   */
+  const christianPrayer = useCallback(() => {
+    addDialogue(
+      'Cả Đội Ngũ AI',
+      '#fde047',
+      'Toàn đội tạm gác mọi tác vụ, cùng xếp hàng trang nghiêm trước Bàn Thờ Chúa & Thánh Giá cầu nguyện bình an!',
+      '✝️'
+    );
+
+    // 4 vị trí xếp hàng ngay ngắn trước bàn thờ Chúa [2.4, 0, -4.8]
+    const christianLine: [number, number, number][] = [
+      [2.0, 0, -3.6],
+      [2.8, 0, -3.6],
+      [2.0, 0, -2.8],
+      [2.8, 0, -2.8]
+    ];
+
+    setAgents((prev) =>
+      prev.map((agent, idx) => {
+        const pos = christianLine[idx % christianLine.length];
+        return {
+          ...agent,
+          targetPosition: pos,
+          targetRotation: Math.PI, // Quay mặt 180 độ nhìn thẳng vào Thánh Giá (-Z)
+          isSeated: false,
+          currentStationId: 'station_cross',
+          pendingStationId: agent.currentStationId || HOME_STATIONS[agent.id] || 'station_director',
+          status: 'moving',
+          thoughtIcon: '✝️',
+          thoughtText: 'Cùng cả đội đi cầu nguyện trước Thánh Giá Chúa...',
+          currentTask: 'Xếp hàng cầu nguyện trước Thánh Giá Chúa...'
+        };
+      })
+    );
+  }, [addDialogue]);
+
+  /**
    * ⏱️ Ambient Office Chatter: Tự động phát sinh những câu chuyện phiếm, thời tiết,
    * tin tức công nghệ hot và những khoảnh khắc vui vẻ ngẫu nhiên của các Agent.
    */
@@ -638,6 +719,7 @@ export function useAgentStore() {
     completeMovement,
     dispatchToWorkstation,
     teamPrayer,
+    christianPrayer,
     simulateBackendEvent,
     addDialogue
   };
