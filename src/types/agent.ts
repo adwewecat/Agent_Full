@@ -1,6 +1,7 @@
 /**
  * @file agent.ts
- * @description Định nghĩa các kiểu dữ liệu cốt lõi cho Agent, Trạng thái hoạt động, Trạm làm việc và Sự kiện.
+ * @description Định nghĩa các kiểu dữ liệu cốt lõi cho Agent, Trạng thái hoạt động, Trạm làm việc,
+ * Bong bóng hội thoại (Thought/Speech Bubbles) và Thú cưng văn phòng (GitCat).
  */
 
 export type AgentStatus = 'idle' | 'working' | 'moving' | 'reviewing';
@@ -10,7 +11,9 @@ export interface AgentData {
   id: string;
   /** Tên hiển thị */
   name: string;
-  /** Vai trò / Chuyên môn (vd: Researcher, Coder, Reviewer) */
+  /** Biệt danh / Tên nhân vật (vd: Nova, Axel, Vesper, Kip) */
+  codename?: string;
+  /** Vai trò / Chuyên môn */
   role: string;
   /** Tọa độ hiện tại [X, Y, Z] */
   position: [number, number, number];
@@ -22,10 +25,18 @@ export interface AgentData {
   currentTask: string;
   /** Tiến độ hoàn thành tác vụ (0 - 100%) */
   progress: number;
-  /** Màu sắc nhận diện của Agent */
+  /** Màu sắc chủ đạo của Agent */
   color: string;
-  /** Đường dẫn file model 3D (mặc định '/models/agent.glb') */
-  modelUrl?: string;
+  /** Màu phụ trợ / Điểm nhấn neon */
+  accentColor: string;
+  /** Phụ kiện đặc trưng: 'cyber-visor' | 'headphones' | 'cat-ears' | 'cap' */
+  accessory: 'cyber-visor' | 'headphones' | 'cat-ears' | 'cap';
+  /** Biểu tượng cảm xúc / Thought bubble icon */
+  thoughtIcon: string;
+  /** Câu thoại / Suy nghĩ hiện tại */
+  thoughtText: string;
+  /** Đường dẫn file model 3D */
+  modelUrl: string;
 }
 
 export interface WorkstationData {
@@ -37,9 +48,17 @@ export interface WorkstationData {
   position: [number, number, number];
   /** Hướng quay của trạm tính theo radian (Y axis) */
   rotation: number;
-  /** Loại trạm (coding, research, server, meeting) */
-  type: 'coding' | 'research' | 'server' | 'lounge';
+  /** Loại trạm (coding, research, server, meeting, arcade) */
+  type: 'coding' | 'research' | 'server' | 'lounge' | 'arcade';
   /** ID của Agent đang ngồi làm việc tại trạm (nếu có) */
   occupiedBy?: string | null;
 }
 
+export interface DialogueLog {
+  id: string;
+  timestamp: string;
+  senderName: string;
+  senderColor: string;
+  message: string;
+  icon: string;
+}

@@ -14,11 +14,13 @@ export function App() {
     workstations,
     selectedAgentId,
     clickTarget,
+    dialogueLogs,
     selectAgent,
     setAgentTarget,
     completeMovement,
     dispatchToWorkstation,
-    simulateBackendEvent
+    simulateBackendEvent,
+    addDialogue
   } = useAgentStore();
 
   /**
@@ -43,6 +45,18 @@ export function App() {
     [selectedAgentId, dispatchToWorkstation]
   );
 
+  /**
+   * Tương tác với chú mèo văn phòng GitCat 🐱
+   */
+  const handlePetCat = useCallback(() => {
+    addDialogue(
+      'GitCat',
+      '#ea580c',
+      '😻 *Purr purr... Meow!* Cảm ơn bạn đã vuốt ve, chúc bạn làm việc vui vẻ!',
+      '🐾'
+    );
+  }, [addDialogue]);
+
   return (
     <div className="app-container">
       {/* 1. Canvas 3D mô phỏng văn phòng góc nhìn Isometric God-View */}
@@ -55,6 +69,7 @@ export function App() {
         onFloorClick={handleFloorClick}
         onArrival={completeMovement}
         onSelectWorkstation={handleSelectWorkstation}
+        onPetCat={handlePetCat}
       />
 
       {/* 2. Giao diện HUD giám sát và ra lệnh cho AI Agents */}
@@ -62,9 +77,11 @@ export function App() {
         agents={agents}
         workstations={workstations}
         selectedAgentId={selectedAgentId}
+        dialogueLogs={dialogueLogs}
         onSelectAgent={selectAgent}
         onDispatchToStation={dispatchToWorkstation}
         onSimulateBackendEvent={simulateBackendEvent}
+        onPetCat={handlePetCat}
       />
     </div>
   );
