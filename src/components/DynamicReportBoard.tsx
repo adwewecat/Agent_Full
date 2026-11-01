@@ -355,7 +355,7 @@ export function DynamicReportBoard({ position = [0, 2.8, -5.53] }: DynamicReport
     ctx.fillStyle = '#e2e8f0';
     ctx.font = '11px Inter, sans-serif';
     ctx.fillText(
-      '✨ Nova: Crawl 1,240 API docs | 💻 Axel: 0 Compiler Errors | 🛡️ Vesper: 100% Clean Code pass | ⚡ Kip: Cluster Mesh Active | 🙏 Đức Phật & Chúa Che Chở ✝️',
+      '✨ Pé Na: Crawl 1,240 API docs | 💻 Pé Ken: 0 Compiler Errors | 🛡️ Lão Lục: Soi sạch 100% Bug | ⚡ Lão Cửu: Cluster Mesh Active | 🙏 Đức Phật & Chúa Che Chở ✝️',
       95,
       tickerY + 18
     );

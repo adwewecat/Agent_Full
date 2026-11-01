@@ -65,10 +65,10 @@ function AgentModel({
 
   // Xác định màu vest/trang phục công sở chuẩn của từng Agent
   const suitColor = useMemo(() => {
-    if (codename === 'Nova') return '#1e293b'; // Vest xanh Navy lãnh đạo
-    if (codename === 'Axel') return '#0f172a'; // Vest xám đen than chì
-    if (codename === 'Vesper') return '#831843'; // Vest đỏ mận quý phái
-    if (codename === 'Kip') return '#334155'; // Áo len cổ sơ mi xám slate
+    if (codename === 'Pé Na') return '#1e293b'; // Vest xanh Navy lãnh đạo
+    if (codename === 'Pé Ken') return '#0f172a'; // Vest xám đen than chì
+    if (codename === 'Lão Lục') return '#831843'; // Vest đỏ mận quý phái
+    if (codename === 'Lão Cửu') return '#334155'; // Áo len cổ sơ mi xám slate
     return '#1e293b';
   }, [codename]);
 
@@ -79,11 +79,11 @@ function AgentModel({
 
     // Xác định tone màu da tự nhiên và ấm áp theo từng Agent
     const skinColor =
-      codename === 'Nova'
+      codename === 'Pé Na'
         ? '#fed7aa' // Trắng hồng tự nhiên
-        : codename === 'Axel'
+        : codename === 'Pé Ken'
         ? '#fde68a' // Tươi tắn khỏe khoắn
-        : codename === 'Vesper'
+        : codename === 'Lão Lục'
         ? '#fff1f2' // Hồng phấn thanh tú
         : '#fed7aa'; // Ấm áp
 

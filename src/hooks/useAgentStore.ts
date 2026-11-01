@@ -34,7 +34,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
   },
   {
     id: 'station_director',
-    name: 'Bàn Giám Đốc Axel',
+    name: 'Bàn Giám Đốc Pé Ken',
     position: [0, 0, -3.4],
     rotation: 0,
     type: 'coding',
@@ -45,7 +45,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
   },
   {
     id: 'station_research',
-    name: 'Bàn Họp - Ghế Nova',
+    name: 'Bàn Họp - Ghế Pé Na',
     position: [-1.15, 0, 0.8],
     rotation: Math.PI / 2,
     type: 'research',
@@ -56,7 +56,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
   },
   {
     id: 'station_qa',
-    name: 'Bàn Họp - Ghế Vesper',
+    name: 'Bàn Họp - Ghế Lão Lục',
     position: [-1.15, 0, 1.8],
     rotation: Math.PI / 2,
     type: 'coding',
@@ -67,7 +67,7 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
   },
   {
     id: 'station_server',
-    name: 'Bàn Họp - Ghế Kip',
+    name: 'Bàn Họp - Ghế Lão Cửu',
     position: [1.15, 0, 0.8],
     rotation: -Math.PI / 2,
     type: 'server',
@@ -109,21 +109,21 @@ export const HOME_STATIONS: Record<string, string> = {
 };
 
 // Tính toán tọa độ ban đầu chuẩn xác cho từng Agent dựa trên trạm làm việc của họ
-const initialAxel = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[1]);
-const initialNova = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[2]);
-const initialVesper = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[3]);
-const initialKip = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[4]);
+const initialKen = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[1]);
+const initialNa = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[2]);
+const initialLuc = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[3]);
+const initialCuu = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[4]);
 
 export const INITIAL_AGENTS: AgentData[] = [
   {
     id: 'agent_1',
-    name: 'Researcher',
-    codename: 'Nova',
+    name: 'Pé Na',
+    codename: 'Pé Na',
     role: 'Deep Web & Data Crawler',
-    position: initialNova.worldPosition,
+    position: initialNa.worldPosition,
     targetPosition: null,
-    targetRotation: initialNova.worldRotation,
-    isSeated: initialNova.isSeated,
+    targetRotation: initialNa.worldRotation,
+    isSeated: initialNa.isSeated,
     status: 'working',
     currentStationId: 'station_research',
     pendingStationId: null,
@@ -134,18 +134,18 @@ export const INITIAL_AGENTS: AgentData[] = [
     accentColor: '#a855f7',
     accessory: 'cyber-visor',
     thoughtIcon: '🔍',
-    thoughtText: 'Đang crawl dữ liệu tài liệu API...',
+    thoughtText: 'Pé Na đang crawl dữ liệu tài liệu API...',
     modelUrl: '/models/agent_researcher.glb'
   },
   {
     id: 'agent_2',
-    name: 'Coder',
-    codename: 'Axel',
+    name: 'Pé Ken',
+    codename: 'Pé Ken',
     role: 'Core Systems Developer',
-    position: initialAxel.worldPosition,
+    position: initialKen.worldPosition,
     targetPosition: null,
-    targetRotation: initialAxel.worldRotation,
-    isSeated: initialAxel.isSeated,
+    targetRotation: initialKen.worldRotation,
+    isSeated: initialKen.isSeated,
     status: 'working',
     currentStationId: 'station_director',
     pendingStationId: null,
@@ -156,18 +156,18 @@ export const INITIAL_AGENTS: AgentData[] = [
     accentColor: '#38bdf8',
     accessory: 'headphones',
     thoughtIcon: '💻',
-    thoughtText: 'Biên dịch xong 42 test units!',
+    thoughtText: 'Pé Ken vừa biên dịch xong 42 test units!',
     modelUrl: '/models/agent_coder.glb'
   },
   {
     id: 'agent_3',
-    name: 'Reviewer',
-    codename: 'Vesper',
+    name: 'Lão Lục',
+    codename: 'Lão Lục',
     role: 'Quality & Security Auditor',
-    position: initialVesper.worldPosition,
+    position: initialLuc.worldPosition,
     targetPosition: null,
-    targetRotation: initialVesper.worldRotation,
-    isSeated: initialVesper.isSeated,
+    targetRotation: initialLuc.worldRotation,
+    isSeated: initialLuc.isSeated,
     status: 'working',
     currentStationId: 'station_qa',
     pendingStationId: null,
@@ -178,18 +178,18 @@ export const INITIAL_AGENTS: AgentData[] = [
     accentColor: '#8b5cf6',
     accessory: 'cat-ears',
     thoughtIcon: '🛡️',
-    thoughtText: 'PR #42 đã pass 100% tiêu chí!',
+    thoughtText: 'Lão Lục đã soi ra bug, đố ai lươn lẹo được!',
     modelUrl: '/models/agent_reviewer.glb'
   },
   {
     id: 'agent_4',
-    name: 'DevOps',
-    codename: 'Kip',
+    name: 'Lão Cửu',
+    codename: 'Lão Cửu',
     role: 'Infrastructure & Pod Deployment',
-    position: initialKip.worldPosition,
+    position: initialCuu.worldPosition,
     targetPosition: null,
-    targetRotation: initialKip.worldRotation,
-    isSeated: initialKip.isSeated,
+    targetRotation: initialCuu.worldRotation,
+    isSeated: initialCuu.isSeated,
     status: 'working',
     currentStationId: 'station_server',
     pendingStationId: null,
@@ -200,7 +200,7 @@ export const INITIAL_AGENTS: AgentData[] = [
     accentColor: '#facc15',
     accessory: 'cap',
     thoughtIcon: '⚡',
-    thoughtText: 'Deploy pod thành công trên node 01!',
+    thoughtText: 'Lão Cửu deploy pod thành công trên node 01!',
     modelUrl: '/models/agent_devops.glb'
   }
 ];
@@ -209,7 +209,7 @@ export const INITIAL_DIALOGUES: DialogueLog[] = [
   {
     id: 'dlg_1',
     timestamp: '09:00',
-    senderName: 'Axel',
+    senderName: 'Pé Ken',
     senderColor: '#f97316',
     message: 'Chào buổi sáng cả đội! Vừa thắp 3 nén hương bái Phật xin vía, hôm nay quyết tâm deploy 0 bug! 🙏',
     icon: '☕'
@@ -217,7 +217,7 @@ export const INITIAL_DIALOGUES: DialogueLog[] = [
   {
     id: 'dlg_2',
     timestamp: '09:05',
-    senderName: 'Nova',
+    senderName: 'Pé Na',
     senderColor: '#06b6d4',
     message: 'Dự báo hôm nay trời 27°C mát dịu, trà sữa đầu hẻm giảm giá 40%, ai ké đơn trân châu đường đen hông? 🧋',
     icon: '🌤️'
@@ -225,17 +225,17 @@ export const INITIAL_DIALOGUES: DialogueLog[] = [
   {
     id: 'dlg_3',
     timestamp: '09:12',
-    senderName: 'Vesper',
+    senderName: 'Lão Lục',
     senderColor: '#ec4899',
-    message: 'Đang soi Clean Code, ai đặt tên biến `dung_xoa_nha_123` thì tự giác bao cả phòng trà sữa nha! 😂',
+    message: 'Lão Lục đang soi Clean Code, ai đặt tên biến `dung_xoa_nha_123` thì tự giác bao cả phòng trà sữa nha! 😂',
     icon: '🛡️'
   },
   {
     id: 'dlg_4',
     timestamp: '09:15',
-    senderName: 'Kip',
+    senderName: 'Lão Cửu',
     senderColor: '#10b981',
-    message: 'Server node-01 uptime 99.999% mượt như bơ. Đừng ai sờ tay vào công tắc nguồn là được! 🚀',
+    message: 'Server node-01 uptime 99.999% mượt như bơ. Có Lão Cửu ở đây thì cluster vững như bàn thạch! 🚀',
     icon: '⚡'
   }
 ];

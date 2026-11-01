@@ -6,7 +6,7 @@
  */
 
 export interface AmbientQuote {
-  agentId?: 'agent_1' | 'agent_2' | 'agent_3' | 'agent_4'; // Nova, Axel, Vesper, Kip
+  agentId?: 'agent_1' | 'agent_2' | 'agent_3' | 'agent_4'; // Pé Na, Pé Ken, Lão Lục, Lão Cửu
   icon: string;
   thought: string;
   chatMessage: string;
@@ -40,25 +40,25 @@ export const AMBIENT_QUOTES: AmbientQuote[] = [
 
   // 📰 Tin tức công nghệ & Xu hướng 2026
   {
-    agentId: 'agent_1', // Nova
+    agentId: 'agent_1', // Pé Na
     icon: '🤖',
-    thought: 'Vừa quét được bài báo AI siêu hot!',
+    thought: 'Pé Na vừa quét được bài báo AI siêu hot!',
     chatMessage: 'Vừa đọc bài báo quốc tế: AI đã giải được thuật toán thiên niên kỷ nhưng vẫn chào thua khi người dùng bảo "đổi màu logo cho hợp phong thủy"!'
   },
   {
-    agentId: 'agent_1', // Nova
+    agentId: 'agent_1', // Pé Na
     icon: '📈',
     thought: 'Giá cà phê Arabica hôm nay tăng nhẹ...',
-    chatMessage: 'Tin vắn tài chính: Giá cà phê tăng 5%, hèn chi sáng nay ngụm cà phê của Axel đắng đót lạ thường!'
+    chatMessage: 'Tin vắn tài chính: Giá cà phê tăng 5%, hèn chi sáng nay ngụm cà phê của Pé Ken đắng đót lạ thường!'
   },
   {
-    agentId: 'agent_4', // Kip
+    agentId: 'agent_4', // Lão Cửu
     icon: '🚀',
     thought: 'Cloud node chạy mượt như lụa!',
-    chatMessage: 'Breaking News: Cụm server node-01 vừa đạt kỷ lục 99.999% uptime mà không cần khởi động lại. Bí quyết là nhờ đặt gần tượng Phật!'
+    chatMessage: 'Breaking News: Cụm server node-01 vừa đạt kỷ lục 99.999% uptime mà không cần khởi động lại. Lão Cửu gánh team xuất sắc!'
   },
   {
-    agentId: 'agent_3', // Vesper
+    agentId: 'agent_3', // Lão Lục
     icon: '🛡️',
     thought: 'Tỉ lệ bug hôm nay đạt ngưỡng 0%!',
     chatMessage: 'Báo cáo kiểm toán chất lượng: Tỉ lệ an toàn bảo mật đạt 100%, không phát hiện lỗ hổng SQL Injection nào, công đức vô lượng!'
@@ -66,27 +66,27 @@ export const AMBIENT_QUOTES: AmbientQuote[] = [
 
   // 💻 Hài hước nghề Dev & Đời sống văn phòng
   {
-    agentId: 'agent_2', // Axel
+    agentId: 'agent_2', // Pé Ken
     icon: '💻',
     thought: 'Tính năng này không phải lỗi đâu nha!',
     chatMessage: 'Tính năng này trên máy mình chạy ngon ơ, sang máy production mà lỗi thì chắc chắn là do... yếu tố tâm linh!'
   },
   {
-    agentId: 'agent_2', // Axel
+    agentId: 'agent_2', // Pé Ken
     icon: '⌨️',
     thought: 'Switch Blue gõ nghe đã tai ghê!',
     chatMessage: 'Bàn phím cơ gõ tanh tách như pháo nổ, nghe giai điệu này là biết chuẩn bị có commit triệu view!'
   },
   {
-    agentId: 'agent_3', // Vesper
+    agentId: 'agent_3', // Lão Lục
     icon: '🔍',
-    thought: 'Ai lại đặt tên biến là `data_final_final2` thế?',
-    chatMessage: 'Vừa review xong một Pull Request: ai đặt tên biến `temp_dung_xoa_nha_123` thì tự giác bước ra thú tội nhận phạt ly trà sữa!'
+    thought: 'Lão Lục lại bắt được biến dị thường!',
+    chatMessage: 'Lão Lục vừa review xong một Pull Request: ai đặt tên biến `temp_dung_xoa_nha_123` thì tự giác bước ra thú tội nhận phạt ly trà sữa!'
   },
   {
-    agentId: 'agent_4', // Kip
+    agentId: 'agent_4', // Lão Cửu
     icon: '☕',
-    thought: 'Thèm một ly Americano đá không đường!',
+    thought: 'Làm một ly Americano đá không đường!',
     chatMessage: 'Uống ly cà phê đen đá vào người, cảm giác nhịp tim đồng bộ chuẩn xác với xung nhịp CPU 4.8GHz!'
   },
   {
@@ -100,7 +100,7 @@ export const AMBIENT_QUOTES: AmbientQuote[] = [
     chatMessage: 'Nghe đồn mùi bánh pizza phô mai thơm lừng sắp xuất hiện tại phòng pantry, có động lực code tiếp rồi!'
   },
   {
-    agentId: 'agent_2', // Axel
+    agentId: 'agent_2', // Pé Ken
     icon: '🚀',
     thought: 'Git push force và quay lưng bước đi...',
     chatMessage: 'Gõ `git push --force` rồi quay lưng đi lấy nước, phong thái điềm tĩnh như siêu điệp viên không nhìn vụ nổ đằng sau!'

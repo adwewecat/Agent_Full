@@ -24,7 +24,7 @@ export function createTorsoAttire({ codename, suitColor }: AttireConfig): THREE.
   group.name = 'agent-torso-attire';
 
   const shirtMat = new THREE.MeshStandardMaterial({
-    color: codename === 'Axel' ? 0xe0f2fe : 0xffffff,
+    color: codename === 'Pé Ken' ? 0xe0f2fe : 0xffffff,
     roughness: 0.35
   });
 
@@ -35,13 +35,13 @@ export function createTorsoAttire({ codename, suitColor }: AttireConfig): THREE.
   });
 
   const tieColor =
-    codename === 'Axel'
+    codename === 'Pé Ken'
       ? 0x0284c7 // Cà vạt xanh coban sang trọng
-      : codename === 'Nova'
+      : codename === 'Pé Na'
       ? 0x4f46e5 // Xanh indigo trí tuệ
-      : codename === 'Vesper'
+      : codename === 'Lão Lục'
       ? 0x9f1239 // Đỏ mận quý phái
-      : 0x0f766e; // Xanh ngọc lục bảo
+      : 0x0f766e; // Xanh ngọc lục bảo (Lão Cửu)
 
   const tieMat = new THREE.MeshStandardMaterial({
     color: tieColor,
@@ -88,8 +88,8 @@ export function createTorsoAttire({ codename, suitColor }: AttireConfig): THREE.
   lapelRight.rotation.set(-0.1, -0.1, 0.22);
   group.add(lapelRight);
 
-  // 3. Cà vạt lụa (cho Axel và Kip) hoặc Thẻ nhân viên an ninh (cho Nova và Vesper)
-  if (codename === 'Axel' || codename === 'Kip') {
+  // 3. Cà vạt lụa (cho Pé Ken, Lão Lục và Lão Cửu) hoặc Thẻ nhân viên an ninh (cho Pé Na)
+  if (codename === 'Pé Ken' || codename === 'Lão Lục' || codename === 'Lão Cửu') {
     // Nút thắt cà vạt (Tie Knot)
     const knot = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.035, 0.02), tieMat);
     knot.position.set(0, 0.21, 0.152);

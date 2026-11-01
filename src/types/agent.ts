@@ -11,7 +11,7 @@ export interface AgentData {
   id: string;
   /** Tên hiển thị */
   name: string;
-  /** Biệt danh / Tên nhân vật (vd: Nova, Axel, Vesper, Kip) */
+  /** Biệt danh / Tên nhân vật (vd: Pé Na, Pé Ken, Lão Lục, Lão Cửu) */
   codename?: string;
   /** Vai trò / Chuyên môn */
   role: string;

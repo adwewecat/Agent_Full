@@ -26,31 +26,31 @@ export function createAgentFace({ codename }: AgentFaceConfig): THREE.Group {
   faceGroup.name = 'agent-face-group';
 
   // 1. Phối màu mắt, tóc và sắc thái nhân vật theo phong cách công sở chuyên nghiệp
-  let eyeColor = 0x0284c7; // Nova: Xanh lam Sapphire thông tuệ
-  let hairColor = 0x1e1b4b; // Nova: Đen ánh xanh huyền bí
+  let eyeColor = 0x0284c7; // Pé Na: Xanh lam Sapphire thông tuệ
+  let hairColor = 0x1e1b4b; // Pé Na: Đen ánh xanh huyền bí
   let eyebrowColor = 0x0f172a;
   let lipColor = 0xc2410c; // Màu môi tự nhiên
   let hasGlasses = false;
 
-  if (codename === 'Nova') {
+  if (codename === 'Pé Na') {
     eyeColor = 0x0284c7;
     hairColor = 0x1e293b;
     eyebrowColor = 0x0f172a;
     lipColor = 0xbe123c;
     hasGlasses = true; // Kính gọng titan trí tuệ
-  } else if (codename === 'Axel') {
+  } else if (codename === 'Pé Ken') {
     eyeColor = 0x78350f; // Nâu hổ phách quyết đoán
     hairColor = 0x1c1917; // Tóc đen tự nhiên
     eyebrowColor = 0x0c0a09;
     lipColor = 0x9a3412;
     hasGlasses = false;
-  } else if (codename === 'Vesper') {
+  } else if (codename === 'Lão Lục') {
     eyeColor = 0x4c1d95; // Tím thạch anh sắc sảo
-    hairColor = 0x451a03; // Nâu hạt dẻ ấm áp
+    hairColor = 0x3b0764; // Tím than huyền bí
     eyebrowColor = 0x271202;
     lipColor = 0x9f1239;
-    hasGlasses = true; // Kính gọng mắt mèo thanh lịch
-  } else if (codename === 'Kip') {
+    hasGlasses = true; // Kính gọng tri thức thanh lịch
+  } else if (codename === 'Lão Cửu') {
     eyeColor = 0x047857; // Xanh lục bảo điềm tĩnh
     hairColor = 0x292524; // Nâu đen than chì
     eyebrowColor = 0x1c1917;
@@ -170,8 +170,8 @@ export function createAgentFace({ codename }: AgentFaceConfig): THREE.Group {
   }
 
   // 7. 💇 MÁI TÓC 3D CỦA CHUYÊN GIA / DOANH NHÂN (Executive Hairstyle)
-  if (codename === 'Nova') {
-    // Nova: Tóc ngắn cá tính chải ngôi lệch sang trọng
+  if (codename === 'Pé Na') {
+    // Pé Na: Tóc ngắn cá tính chải ngôi lệch sang trọng
     const hairTop = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.12, 0.32), hairMat);
     hairTop.position.set(0, 0.32, 0.02);
     faceGroup.add(hairTop);
@@ -188,8 +188,8 @@ export function createAgentFace({ codename }: AgentFaceConfig): THREE.Group {
       side.position.set(x, 0.22, 0.04);
       faceGroup.add(side);
     });
-  } else if (codename === 'Axel') {
-    // Axel: Tóc nam công sở hiện đại vuốt pomade gọn gàng
+  } else if (codename === 'Pé Ken') {
+    // Pé Ken: Tóc nam công sở hiện đại vuốt pomade gọn gàng
     const topHair = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.3), hairMat);
     topHair.position.set(0, 0.33, 0.02);
     faceGroup.add(topHair);
@@ -208,28 +208,24 @@ export function createAgentFace({ codename }: AgentFaceConfig): THREE.Group {
     beard.rotation.z = Math.PI;
     beard.position.set(0, 0.07, 0.155);
     faceGroup.add(beard);
-  } else if (codename === 'Vesper') {
-    // Vesper: Búi tóc doanh nhân nữ sang trọng (Chic Executive French Bun)
+  } else if (codename === 'Lão Lục') {
+    // Lão Lục: Mái tóc chải rẽ ngôi 7/3 lãng tử, phong thái quý phái bí hiểm của thánh soi bug
     const topHair = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.3), hairMat);
     topHair.position.set(0, 0.32, 0.02);
     faceGroup.add(topHair);
 
-    // Búi tóc cao phía sau đầu
-    const bun = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), hairMat);
+    // Mái tóc vuốt bồng 7/3
+    const sidePart = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.07, 0.12), hairMat);
+    sidePart.position.set(0.06, 0.28, 0.16);
+    sidePart.rotation.set(0.1, 0, 0.2);
+    faceGroup.add(sidePart);
+
+    // Búi tóc nhỏ phong trần phía sau
+    const bun = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), hairMat);
     bun.position.set(0, 0.26, -0.16);
     faceGroup.add(bun);
-
-    // Đôi hoa tai ngọc trai thanh lịch (Pearl Stud Earrings)
-    [-0.18, 0.18].forEach((x) => {
-      const pearl = new THREE.Mesh(
-        new THREE.SphereGeometry(0.014, 12, 12),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.3 })
-      );
-      pearl.position.set(x, 0.14, 0.04);
-      faceGroup.add(pearl);
-    });
-  } else if (codename === 'Kip') {
-    // Kip: Tóc nam Undercut ngắn năng động hiện đại
+  } else if (codename === 'Lão Cửu') {
+    // Lão Cửu: Tóc nam Undercut ngắn năng động hiện đại
     const cropHair = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.11, 0.3), hairMat);
     cropHair.position.set(0, 0.31, 0.02);
     faceGroup.add(cropHair);
