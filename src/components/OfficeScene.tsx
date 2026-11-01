@@ -144,6 +144,8 @@ export function OfficeScene({
               role={agent.role}
               position={agent.position}
               targetPosition={agent.targetPosition}
+              targetRotation={agent.targetRotation}
+              isSeated={agent.isSeated}
               status={agent.status}
               color={agent.color}
               accentColor={agent.accentColor}

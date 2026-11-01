@@ -191,3 +191,4 @@ export function GitCat({ onPetCat }: GitCatProps) {
     </group>
   );
 }
+

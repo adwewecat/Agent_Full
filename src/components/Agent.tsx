@@ -1,9 +1,9 @@
 /**
  * @file Agent.tsx
  * @description Component nhân vật 3D đại diện cho AI Agent trong văn phòng ảo.
- * Nâng cấp phong cách nghệ thuật đa sắc màu (Artistic & Colorful), phụ kiện đặc trưng
- * (Cyber Visor, Gaming Headphones, Cat Ears, Cap), và bong bóng suy nghĩ hoạt hình
- * (Thought / Speech Bubbles) lấy cảm hứng trực tiếp từ pixel-agents-hq/pixel-agents.
+ * Xử lý tương thích hình học và tọa độ điểm ngồi chuẩn xác (Seating Alignment),
+ * hỗ trợ xoay người hướng về màn hình khi ngồi làm việc, điều chỉnh cao độ bù trừ
+ * trọng tâm hoạt ảnh (Sit Y Compensation) để không bao giờ bị ngồi dưới ghế hay chìm sàn.
  */
 
 import { useRef, useEffect, useMemo, Suspense } from 'react';
@@ -20,6 +20,8 @@ export interface AgentProps {
   role?: string;
   position: [number, number, number];
   targetPosition?: [number, number, number] | null;
+  targetRotation?: number | null;
+  isSeated?: boolean;
   status: AgentStatus;
   color?: string;
   accentColor?: string;
@@ -48,7 +50,6 @@ function AgentAccessory({
 
   switch (type) {
     case 'cyber-visor':
-      // Kính bảo hộ Cyberpunk phát quang neon
       return (
         <group position={[0, 1.08, 0.16]}>
           <mesh>
@@ -69,20 +70,16 @@ function AgentAccessory({
       );
 
     case 'headphones':
-      // Tai nghe chụp tai Gaming cỡ lớn phát sáng
       return (
         <group position={[0, 1.15, 0]}>
-          {/* Vòm tai nghe trên đỉnh đầu */}
           <mesh position={[0, 0.1, 0]}>
             <torusGeometry args={[0.2, 0.025, 8, 24, Math.PI]} />
             <meshStandardMaterial color="#0f172a" roughness={0.3} />
           </mesh>
-          {/* Củ tai nghe trái */}
           <mesh position={[-0.2, -0.05, 0]} rotation={[0, 0, Math.PI / 2]}>
             <cylinderGeometry args={[0.07, 0.07, 0.06, 16]} />
             <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
           </mesh>
-          {/* Củ tai nghe phải */}
           <mesh position={[0.2, -0.05, 0]} rotation={[0, 0, Math.PI / 2]}>
             <cylinderGeometry args={[0.07, 0.07, 0.06, 16]} />
             <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
@@ -91,20 +88,16 @@ function AgentAccessory({
       );
 
     case 'cat-ears':
-      // Tai mèo phát quang phong cách streamer công nghệ
       return (
         <group position={[0, 1.25, 0]}>
-          {/* Băng đô */}
           <mesh position={[0, 0, 0]}>
             <torusGeometry args={[0.18, 0.02, 8, 24, Math.PI]} />
             <meshStandardMaterial color="#1e1b4b" />
           </mesh>
-          {/* Tai mèo trái */}
           <mesh position={[-0.12, 0.06, 0]} rotation={[0, 0, 0.25]}>
             <coneGeometry args={[0.06, 0.12, 4]} />
             <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.5} />
           </mesh>
-          {/* Tai mèo phải */}
           <mesh position={[0.12, 0.06, 0]} rotation={[0, 0, -0.25]}>
             <coneGeometry args={[0.06, 0.12, 4]} />
             <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.5} />
@@ -113,14 +106,12 @@ function AgentAccessory({
       );
 
     case 'cap':
-      // Mũ lưỡi trai snapback đội ngược phong cách streetwear năng động
       return (
         <group position={[0, 1.2, -0.04]} rotation={[-0.15, 0, 0]}>
           <mesh position={[0, 0.02, 0]}>
             <sphereGeometry args={[0.2, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
             <meshStandardMaterial color={color} roughness={0.7} />
           </mesh>
-          {/* Lưỡi mũ quay về phía sau */}
           <mesh position={[0, 0, -0.18]} rotation={[0.2, 0, 0]}>
             <boxGeometry args={[0.22, 0.02, 0.12]} />
             <meshStandardMaterial color={accentColor} />
@@ -140,6 +131,8 @@ function AgentModel({
   role = 'Agent',
   position,
   targetPosition,
+  targetRotation,
+  isSeated = false,
   status,
   color = '#3b82f6',
   accentColor = '#f59e0b',
@@ -154,11 +147,10 @@ function AgentModel({
   const group = useRef<THREE.Group>(null);
   const currentPos = useRef(new THREE.Vector3(...position));
 
-  // Tải model GLTF
+  // Tải model GLTF và tách instance skeleton độc lập
   const gltf = useGLTF(modelUrl);
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(gltf.scene);
-    // Tinh chỉnh vật liệu để nhân vật có màu sắc tươi tắn và nổi khối nghệ thuật
     clonedScene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
@@ -177,7 +169,7 @@ function AgentModel({
 
   const { actions, names } = useAnimations(gltf.animations, group);
 
-  // Ánh xạ clip hoạt ảnh linh hoạt
+  // Ánh xạ clip hoạt ảnh linh hoạt (hỗ trợ sit khi ngồi ghế, interact-right khi đứng làm việc)
   const animationMap = useMemo(() => {
     const findClip = (candidates: string[]) => {
       for (const candidate of candidates) {
@@ -190,7 +182,8 @@ function AgentModel({
     return {
       idle: findClip(['Idle', 'idle', 'static']),
       walk: findClip(['Walk', 'walk', 'sprint']),
-      typing: findClip(['Typing', 'typing', 'sit', 'interact-right', 'interact-left', 'idle'])
+      sit: findClip(['Sit', 'sit', 'crouch', 'idle']),
+      typing: findClip(['Interact-right', 'interact-right', 'interact-left', 'Typing', 'typing', 'idle'])
     };
   }, [names]);
 
@@ -201,21 +194,33 @@ function AgentModel({
     if (status === 'moving') {
       targetClipName = animationMap.walk;
     } else if (status === 'working' || status === 'reviewing') {
-      targetClipName = animationMap.typing;
+      // Khi ngồi ghế: chơi animation sit; khi đứng trước tủ server/arcade: chơi typing/interact
+      targetClipName = isSeated ? animationMap.sit : animationMap.typing;
     } else {
-      targetClipName = animationMap.idle;
+      // Khi nghỉ (Idle): nếu ngồi trên sofa thì ngồi, nếu ở sàn thì đứng
+      targetClipName = isSeated ? animationMap.sit : animationMap.idle;
     }
 
     if (targetClipName && actions[targetClipName]) {
       const nextAction = actions[targetClipName];
       if (nextAction) {
-        nextAction.reset().fadeIn(0.25).play();
+        nextAction.reset().fadeIn(0.2).play();
         return () => {
-          nextAction.fadeOut(0.25);
+          nextAction.fadeOut(0.2);
         };
       }
     }
-  }, [status, actions, animationMap]);
+  }, [status, isSeated, actions, animationMap]);
+
+  // Đồng bộ vị trí khi props position thay đổi từ bên ngoài
+  useEffect(() => {
+    if (!targetPosition) {
+      currentPos.current.set(...position);
+      if (group.current) {
+        group.current.position.copy(currentPos.current);
+      }
+    }
+  }, [position, targetPosition]);
 
   // Vòng lặp cập nhật chuyển động và xoay góc nhìn trong useFrame
   useFrame((_, delta) => {
@@ -223,26 +228,38 @@ function AgentModel({
 
     if (targetPosition) {
       const targetVec = new THREE.Vector3(targetPosition[0], targetPosition[1], targetPosition[2]);
-      const distance = currentPos.current.distanceTo(targetVec);
+      // Tính khoảng cách trên mặt phẳng XZ
+      const dx = targetVec.x - currentPos.current.x;
+      const dz = targetVec.z - currentPos.current.z;
+      const distHorizontal = Math.sqrt(dx * dx + dz * dz);
 
-      if (distance > 0.06) {
-        // Xoay hướng mặt về đích
-        const dx = targetVec.x - currentPos.current.x;
-        const dz = targetVec.z - currentPos.current.z;
+      if (distHorizontal > 0.08) {
+        // Đang đi bộ: Hướng mặt theo hướng bước chân
         const targetAngle = Math.atan2(dx, dz);
-
         let diff = targetAngle - group.current.rotation.y;
         while (diff < -Math.PI) diff += Math.PI * 2;
         while (diff > Math.PI) diff -= Math.PI * 2;
         group.current.rotation.y += diff * Math.min(delta * 12, 1);
 
-        // Nội suy vị trí di chuyển
-        const step = Math.min((delta * 3.2) / distance, 1);
-        currentPos.current.lerp(targetVec, step);
+        // Trong lúc bước đi, chân luôn tiếp đất ở sàn nhà (Y = 0)
+        const step = Math.min((delta * 3.2) / distHorizontal, 1);
+        currentPos.current.x = THREE.MathUtils.lerp(currentPos.current.x, targetVec.x, step);
+        currentPos.current.z = THREE.MathUtils.lerp(currentPos.current.z, targetVec.z, step);
+        currentPos.current.y = THREE.MathUtils.lerp(currentPos.current.y, 0, Math.min(delta * 10, 1));
         group.current.position.copy(currentPos.current);
       } else {
-        group.current.position.copy(targetVec);
+        // Đã tới đích thành công:
+        // Đặt vị trí chính xác (bao gồm độ cao ngồi trên ghế nếu có)
         currentPos.current.copy(targetVec);
+        group.current.position.copy(targetVec);
+
+        // Xoay mặt chính xác về hướng bàn làm việc/màn hình
+        if (targetRotation !== null && targetRotation !== undefined) {
+          let diff = targetRotation - group.current.rotation.y;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          group.current.rotation.y += diff * Math.min(delta * 10, 1);
+        }
 
         if (onArrival) {
           const isAtWorkstation = targetVec.x !== 0 || targetVec.z !== 0;
@@ -254,7 +271,14 @@ function AgentModel({
         }
       }
     } else {
+      // Khi đứng/ngồi yên tại chỗ: Duy trì hướng xoay chuẩn xác
       group.current.position.copy(currentPos.current);
+      if (targetRotation !== null && targetRotation !== undefined) {
+        let diff = targetRotation - group.current.rotation.y;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        group.current.rotation.y += diff * Math.min(delta * 10, 1);
+      }
     }
   });
 
@@ -273,8 +297,8 @@ function AgentModel({
       {/* Phụ kiện độc đáo theo từng Agent */}
       <AgentAccessory type={accessory} color={color} accentColor={accentColor} />
 
-      {/* Vòng hào quang phát sáng dưới chân khi được chọn */}
-      {isSelected && (
+      {/* Vòng hào quang phát sáng dưới chân khi được chọn (chỉ hiện khi đứng trên sàn) */}
+      {isSelected && !isSeated && (
         <group position={[0, 0.02, 0]}>
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
             <ringGeometry args={[0.5, 0.62, 32]} />
@@ -287,14 +311,21 @@ function AgentModel({
         </group>
       )}
 
-      {/* Đĩa bóng tiếp đất mềm */}
-      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.38, 32]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.28} />
-      </mesh>
+      {/* Đĩa bóng tiếp đất mềm (chỉ hiện khi đứng trên sàn) */}
+      {!isSeated && (
+        <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.38, 32]} />
+          <meshBasicMaterial color="#000000" transparent opacity={0.28} />
+        </mesh>
+      )}
 
-      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘI THOẠI (Thought Bubble - Phong cách Pixel-Agents) */}
-      <Html position={[0, 2.25, 0]} center distanceFactor={14} style={{ pointerEvents: 'none' }}>
+      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘI THOẠI (Thought Bubble) */}
+      <Html
+        position={[0, isSeated ? 2.0 : 2.25, 0]}
+        center
+        distanceFactor={14}
+        style={{ pointerEvents: 'none' }}
+      >
         <div className="thought-bubble-wrapper">
           <div
             className="thought-bubble"
@@ -306,13 +337,17 @@ function AgentModel({
             <span className="thought-icon">{thoughtIcon}</span>
             <span className="thought-text">{thoughtText}</span>
           </div>
-          {/* Mũi tên đuôi bong bóng chỉ xuống nhân vật */}
           <div className="thought-arrow" style={{ borderTopColor: color }} />
         </div>
       </Html>
 
       {/* 🏷️ Thẻ định danh & Trạng thái nổi trên đầu Agent */}
-      <Html position={[0, 1.8, 0]} center distanceFactor={14} style={{ pointerEvents: 'none' }}>
+      <Html
+        position={[0, isSeated ? 1.55 : 1.8, 0]}
+        center
+        distanceFactor={14}
+        style={{ pointerEvents: 'none' }}
+      >
         <div
           style={{
             display: 'flex',
