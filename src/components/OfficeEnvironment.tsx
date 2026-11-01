@@ -24,16 +24,13 @@ export function OfficeEnvironment() {
       {/* 2. Vách kính Panorama kịch trần & Đường chân trời thành phố 3D */}
       <CitySkylineView />
 
-      {/* 3. Hệ thống dầm trần công nghiệp và đèn LED tuyến tính */}
-      <CeilingArchitecture />
-
-      {/* 4. Màn hình Hologram cong siêu lớn treo trần (Overhead Curved Metrics Display) */}
+      {/* 3. Màn hình Hologram cong siêu lớn treo trần (Overhead Curved Metrics Display) */}
       <OverheadCurvedDisplay />
 
-      {/* 5. Bàn tương tác Hologram AI Core trung tâm (The Heart of Command Center) */}
+      {/* 4. Bàn tương tác Hologram AI Core trung tâm (The Heart of Command Center) */}
       <CentralHologramTable />
 
-      {/* 6. Cây xanh cảnh quan văn phòng hiện đại (Indoor Executive Plants) */}
+      {/* 5. Cây xanh cảnh quan văn phòng hiện đại (Indoor Executive Plants) */}
       <ExecutivePlant position={[-6.8, 0, -5.2]} scale={1.1} />
       <ExecutivePlant position={[6.8, 0, -5.2]} scale={1.1} />
       <ExecutivePlant position={[-6.8, 0, 5.0]} scale={1.0} />
@@ -61,12 +58,6 @@ function ExecutiveFloor() {
           metalness={0.12}
         />
       </mesh>
-
-      {/* Lưới gạch lát sàn kiến trúc tối giản */}
-      <gridHelper
-        args={[18, 36, '#94a3b8', '#e2e8f0']}
-        position={[0, 0.002, 0]}
-      />
 
       {/* Khu vực thảm sàn trung tâm màu xám than sang trọng bên dưới bàn Hologram */}
       <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -242,50 +233,7 @@ function CitySkylineView() {
 }
 
 /**
- * 🏗️ 3. Hệ thống dầm trần công nghiệp và đèn LED tuyến tính hiện đại
- */
-function CeilingArchitecture() {
-  return (
-    <group position={[0, 4.8, 0]}>
-      {/* Các thanh dầm chịu lực ngang màu than chì */}
-      {[-5.0, -1.8, 1.8, 5.0].map((z, idx) => (
-        <mesh key={idx} position={[0, 0, z]} castShadow>
-          <boxGeometry args={[16, 0.35, 0.25]} />
-          <meshStandardMaterial color="#0f172a" metalness={0.7} roughness={0.3} />
-        </mesh>
-      ))}
-
-      {/* Đèn tuýp LED tuyến tính thả trần chiếu sáng ấm áp xuống các dãy bàn làm việc */}
-      {[-4.2, 4.2].map((x, idx) => (
-        <group key={idx} position={[x, -0.6, 0]}>
-          {/* Dây cáp treo thép mảnh */}
-          <mesh position={[0, 0.3, -2.5]}>
-            <cylinderGeometry args={[0.01, 0.01, 0.6, 8]} />
-            <meshStandardMaterial color="#64748b" metalness={0.9} />
-          </mesh>
-          <mesh position={[0, 0.3, 2.5]}>
-            <cylinderGeometry args={[0.01, 0.01, 0.6, 8]} />
-            <meshStandardMaterial color="#64748b" metalness={0.9} />
-          </mesh>
-          {/* Máng đèn nhôm xước */}
-          <mesh castShadow>
-            <boxGeometry args={[0.16, 0.08, 6.5]} />
-            <meshStandardMaterial color="#1e293b" metalness={0.8} />
-          </mesh>
-          {/* Mặt đèn phát sáng LED trắng ấm tự nhiên */}
-          <mesh position={[0, -0.045, 0]}>
-            <planeGeometry args={[0.12, 6.4]} />
-            <meshBasicMaterial color="#fef08a" />
-          </mesh>
-          <pointLight position={[0, -0.2, 0]} color="#fef3c7" intensity={0.9} distance={6} />
-        </group>
-      ))}
-    </group>
-  );
-}
-
-/**
- * 📊 4. Màn hình Hologram cong siêu lớn treo trần (Overhead Curved Metrics Screen)
+ * 📊 3. Màn hình Hologram cong siêu lớn treo trần (Overhead Curved Metrics Screen)
  * Mô phỏng chính xác màn hình cong khổng lồ trong ảnh tham chiếu NOVUS AI:
  * "BUSINESS METRICS & SCALING VISION", biểu đồ cột Revenue +48%, Funding +55%, Q4 Growth +66%
  */
@@ -400,7 +348,7 @@ function OverheadCurvedDisplay() {
 }
 
 /**
- * 🌐 5. Bàn tương tác Hologram AI Core trung tâm (Central Interactive Hologram Table)
+ * 🌐 4. Bàn tương tác Hologram AI Core trung tâm (Central Interactive Hologram Table)
  * Trung tâm điều phối của văn phòng chỉ huy theo đúng ảnh tham chiếu NOVUS AI:
  * - Bàn pedestal kính đen sang trọng với chân đế kim loại vát cạnh.
  * - Quả địa cầu AI 3D phát sáng rực rỡ xoay tròn liên tục.
