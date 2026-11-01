@@ -15,10 +15,12 @@ import {
   getWorkstationSeatTransform
 } from '../types/agent';
 import {
-  getRandomAmbientQuote,
+  getSmartAmbientQuote,
   getRandomBuddhaMeme,
   getRandomChristianMeme,
-  getRandomDodgeReaction
+  getRandomDodgeReaction,
+  WORK_COLLABORATION_DIALOGUES,
+  OFFICE_ROUTINE_SCRIPTS
 } from '../data/dialogueBank';
 
 export const INITIAL_WORKSTATIONS: WorkstationData[] = [
@@ -109,6 +111,39 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
     seatRotationOffset: 0,
     isSeated: true,
     occupiedBy: null
+  },
+  {
+    id: 'station_coffee',
+    name: 'Quầy Pha Cà Phê',
+    position: [5.25, 0, -1.4],
+    rotation: -Math.PI / 2,
+    type: 'coffee',
+    seatOffset: [0, 0, 0.85],
+    seatRotationOffset: Math.PI,
+    isSeated: false,
+    occupiedBy: null
+  },
+  {
+    id: 'station_cat',
+    name: 'Bát Ăn Mèo GitCat',
+    position: [-5.15, 0, -2.4],
+    rotation: Math.PI / 2,
+    type: 'cat',
+    seatOffset: [0, 0, 0.8],
+    seatRotationOffset: Math.PI,
+    isSeated: false,
+    occupiedBy: null
+  },
+  {
+    id: 'station_restroom',
+    name: 'Cửa Restroom',
+    position: [5.72, 0, -3.2],
+    rotation: -Math.PI / 2,
+    type: 'restroom',
+    seatOffset: [0, 0, 0.9],
+    seatRotationOffset: Math.PI,
+    isSeated: false,
+    occupiedBy: null
   }
 ];
 
@@ -120,11 +155,16 @@ export const HOME_STATIONS: Record<string, string> = {
   agent_4: 'station_server'
 };
 
-// Tính toán tọa độ ban đầu chuẩn xác cho từng Agent dựa trên trạm làm việc của họ
-const initialKen = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[1]);
-const initialNa = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[2]);
-const initialLuc = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[3]);
-const initialCuu = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[4]);
+// Tìm trạm làm việc chính xác cho từng Agent
+const directorStation = INITIAL_WORKSTATIONS.find((s) => s.id === 'station_director')!;
+const researchStation = INITIAL_WORKSTATIONS.find((s) => s.id === 'station_research')!;
+const qaStation = INITIAL_WORKSTATIONS.find((s) => s.id === 'station_qa')!;
+const serverStation = INITIAL_WORKSTATIONS.find((s) => s.id === 'station_server')!;
+
+const initialKen = getWorkstationSeatTransform(directorStation);
+const initialNa = getWorkstationSeatTransform(researchStation);
+const initialLuc = getWorkstationSeatTransform(qaStation);
+const initialCuu = getWorkstationSeatTransform(serverStation);
 
 export const INITIAL_AGENTS: AgentData[] = [
   {
@@ -270,15 +310,15 @@ export function useAgentStore() {
   const dispatchRef = useRef<(agentId: string, stationId: string, requirePrayer?: boolean) => void>(() => {});
 
   /**
-   * Thêm log hội thoại mới vào feed
+   * Thêm log hội thoại mới vào feed và hiển thị bong bóng chat trên đầu nhân vật
    */
-  const addDialogue = useCallback((senderName: string, senderColor: string, message: string, icon: string) => {
+  const addDialogue = useCallback((senderName: string, senderColor: string, message: string, icon: string, targetAgentId?: string) => {
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     setDialogueLogs((prev) => [
       ...prev.slice(-6),
       {
-        id: `dlg_${Date.now()}`,
+        id: `dlg_${Date.now()}_${Math.random()}`,
         timestamp: timeStr,
         senderName,
         senderColor,
@@ -286,6 +326,31 @@ export function useAgentStore() {
         icon
       }
     ]);
+
+    // Tìm Agent phát biểu để gắn lời thoại trực tiếp trên đầu
+    setAgents((prev) => {
+      const speaker = prev.find((a) => {
+        if (targetAgentId) return a.id === targetAgentId;
+        return (a.codename && senderName.includes(a.codename)) || senderName.includes(a.name);
+      });
+      if (!speaker) return prev;
+
+      // Hẹn giờ thu hồi bong bóng thoại sau 5.5s
+      setTimeout(() => {
+        setAgents((curr) =>
+          curr.map((a) => (a.id === speaker.id && a.speechText === message ? { ...a, speechText: null } : a))
+        );
+      }, 5500);
+
+      return prev.map((a) =>
+        a.id === speaker.id
+          ? {
+              ...a,
+              speechText: message
+            }
+          : a
+      );
+    });
   }, []);
 
   /**
@@ -364,9 +429,25 @@ export function useAgentStore() {
       const currentAgent = agents.find((a) => a.id === agentId);
       if (!currentAgent) return;
 
-      // Nếu mục tiêu chính là Đài Sen Bái Phật, Bàn Thờ Chúa, hoặc requirePrayer = false (đã bái rồi)
-      if (stationId === 'station_buddha' || stationId === 'station_cross' || !requirePrayer) {
+      // Nếu mục tiêu chính là Đài Sen Bái Phật, Bàn Thờ Chúa, Sinh hoạt văn phòng, hoặc requirePrayer = false (đã bái rồi)
+      const isRoutineStation =
+        stationId === 'station_coffee' || stationId === 'station_cat' || stationId === 'station_restroom';
+
+      if (stationId === 'station_buddha' || stationId === 'station_cross' || isRoutineStation || !requirePrayer) {
         const transform = getWorkstationSeatTransform(station);
+
+        let routineSpeech = '';
+        let routineIcon = '🚶';
+        if (stationId === 'station_coffee') {
+          routineSpeech = OFFICE_ROUTINE_SCRIPTS.coffee.startSpeech;
+          routineIcon = '☕';
+        } else if (stationId === 'station_cat') {
+          routineSpeech = OFFICE_ROUTINE_SCRIPTS.cat.startSpeech;
+          routineIcon = '🐱';
+        } else if (stationId === 'station_restroom') {
+          routineSpeech = OFFICE_ROUTINE_SCRIPTS.restroom.startSpeech;
+          routineIcon = '🚻';
+        }
 
         setAgents((prev) =>
           prev.map((agent) => {
@@ -374,8 +455,9 @@ export function useAgentStore() {
               addDialogue(
                 agent.codename || agent.name,
                 agent.color,
-                `Đang di chuyển đến ${station.name}...`,
-                '🚶'
+                routineSpeech || `Đang di chuyển đến ${station.name}...`,
+                routineIcon,
+                agent.id
               );
               return {
                 ...agent,
@@ -383,11 +465,11 @@ export function useAgentStore() {
                 targetRotation: transform.worldRotation,
                 isSeated: transform.isSeated,
                 currentStationId: stationId,
-                pendingStationId: null,
+                pendingStationId: isRoutineStation ? (agent.currentStationId || HOME_STATIONS[agent.id]) : null,
                 status: 'moving',
-                thoughtIcon: '🚶',
-                thoughtText: `Đi tới ${station.name}...`,
-                currentTask: `Di chuyển đến ${station.name}...`
+                thoughtIcon: routineIcon,
+                thoughtText: routineSpeech || `Đi tới ${station.name}...`,
+                currentTask: routineSpeech || `Di chuyển đến ${station.name}...`
               };
             }
             return agent;
@@ -496,7 +578,8 @@ export function useAgentStore() {
             targetAgent.codename || targetAgent.name,
             targetAgent.color,
             '✝️ Đã thành kính cầu nguyện trước Thánh Giá Chúa: Cầu bình an, sáng suốt, hệ thống ổn định 100%!',
-            '✝️'
+            '✝️',
+            id
           );
 
           // Tự động trở về trạm làm việc sau 2.8s
@@ -517,6 +600,100 @@ export function useAgentStore() {
                   thoughtIcon: '✝️',
                   thoughtText: '✝️ Cầu Chúa ban phước • Bình an & Vững bền!',
                   currentTask: 'Đang thành tâm cầu nguyện trước Thánh Giá Chúa...'
+                }
+              : agent
+          );
+        }
+
+        // 1.6. Nếu Agent bước tới quầy pha cà phê
+        if (targetAgent.currentStationId === 'station_coffee') {
+          addDialogue(
+            targetAgent.codename || targetAgent.name,
+            targetAgent.color,
+            OFFICE_ROUTINE_SCRIPTS.coffee.endSpeech,
+            '☕',
+            id
+          );
+
+          // Tự động trở về trạm làm việc sau 3.5s
+          const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+          setTimeout(() => {
+            dispatchRef.current(id, returnStationId, false);
+          }, 3500);
+
+          return prev.map((agent) =>
+            agent.id === id
+              ? {
+                  ...agent,
+                  position: [finalPosition[0], 0, finalPosition[2]],
+                  targetPosition: null,
+                  isSeated: false,
+                  status: 'idle',
+                  thoughtIcon: '☕',
+                  thoughtText: OFFICE_ROUTINE_SCRIPTS.coffee.endThought,
+                  currentTask: 'Đang pha và thưởng thức Americano tại quầy Bar...'
+                }
+              : agent
+          );
+        }
+
+        // 1.7. Nếu Agent bước tới góc cho mèo GitCat ăn
+        if (targetAgent.currentStationId === 'station_cat') {
+          addDialogue(
+            targetAgent.codename || targetAgent.name,
+            targetAgent.color,
+            OFFICE_ROUTINE_SCRIPTS.cat.endSpeech,
+            '🐱',
+            id
+          );
+
+          const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+          setTimeout(() => {
+            dispatchRef.current(id, returnStationId, false);
+          }, 3500);
+
+          return prev.map((agent) =>
+            agent.id === id
+              ? {
+                  ...agent,
+                  position: [finalPosition[0], 0, finalPosition[2]],
+                  targetPosition: null,
+                  isSeated: false,
+                  status: 'idle',
+                  thoughtIcon: '🐱',
+                  thoughtText: OFFICE_ROUTINE_SCRIPTS.cat.endThought,
+                  currentTask: 'Đang cho mèo GitCat ăn súp thưởng và vuốt ve...'
+                }
+              : agent
+          );
+        }
+
+        // 1.8. Nếu Agent bước tới Restroom
+        if (targetAgent.currentStationId === 'station_restroom') {
+          addDialogue(
+            targetAgent.codename || targetAgent.name,
+            targetAgent.color,
+            OFFICE_ROUTINE_SCRIPTS.restroom.endSpeech,
+            '🚻',
+            id
+          );
+
+          const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+          setTimeout(() => {
+            dispatchRef.current(id, returnStationId, false);
+          }, 3500);
+
+          return prev.map((agent) =>
+            agent.id === id
+              ? {
+                  ...agent,
+                  position: [finalPosition[0], 0, finalPosition[2]],
+                  targetPosition: null,
+                  isSeated: false,
+                  status: 'idle',
+                  thoughtIcon: '🚻',
+                  thoughtText: OFFICE_ROUTINE_SCRIPTS.restroom.endThought,
+                  currentTask: 'Đang rửa mặt refresh tinh thần trong Restroom...'
                 }
               : agent
           );
@@ -870,24 +1047,28 @@ export function useAgentStore() {
   }, [castBuddhaMiracle, castChristianMiracle]);
 
   /**
-   * ⏱️ Ambient Office Chatter: Tự động phát sinh những câu chuyện phiếm, thời tiết,
-   * tin tức công nghệ hot và những khoảnh khắc vui vẻ ngẫu nhiên của các Agent.
+   * ⏱️ Ambient Office Chatter: Tự động phát sinh những mẩu tin tức công nghệ xác thực và chuyện phiếm dí dỏm.
+   * Tần suất giãn cách 45 giây (giảm tần suất nói liên tục để không gây rối mắt).
+   * Cơ chế chống lặp thông minh: Câu hài hước hạn chế lặp lại trong ngày, tin tức xác thực cho phép lặp lại bình thường.
    */
   useEffect(() => {
     const timer = setInterval(() => {
       setAgents((prev) => {
-        // Chỉ chọn các Agent không bận bái Phật để trò chuyện
-        const candidates = prev.filter((a) => a.status !== 'praying');
+        // Chỉ chọn các Agent đang rảnh rỗi hoặc làm việc, không bận bái Phật hay né đạn
+        const candidates = prev.filter(
+          (a) => a.status !== 'praying' && a.status !== 'dodging' && a.status !== 'moving'
+        );
         if (candidates.length === 0) return prev;
 
         const randomAgent = candidates[Math.floor(Math.random() * candidates.length)];
-        const quote = getRandomAmbientQuote(randomAgent.id);
+        const quote = getSmartAmbientQuote(randomAgent.id);
 
         addDialogue(
           randomAgent.codename || randomAgent.name,
           randomAgent.color,
           quote.chatMessage,
-          quote.icon
+          quote.icon,
+          randomAgent.id
         );
 
         return prev.map((a) =>
@@ -900,39 +1081,72 @@ export function useAgentStore() {
             : a
         );
       });
-    }, 13000); // Cứ mỗi 13 giây ngẫu nhiên phát sinh 1 mẩu chuyện phiếm vui vẻ
+    }, 45000); // 45 giây giãn cách một câu nói nhẹ nhàng
 
     return () => clearInterval(timer);
   }, [addDialogue]);
 
   /**
-   * Giả lập tín hiệu cập nhật trạng thái từ backend (Push Event)
+   * 🚶 Sinh hoạt văn phòng đời thường tự động (Autonomous Living Routines):
+   * Định kỳ mỗi 65 giây, 1 nhân sự đang ngồi làm việc sẽ tự động đứng dậy xin phép
+   * đi pha cà phê nạp caffeine, cho mèo GitCat ăn súp thưởng, hoặc ghé Restroom rửa mặt,
+   * sau đó tự động trở về bàn làm việc tiếp tục công việc.
+   */
+  useEffect(() => {
+    const routineTimer = setInterval(() => {
+      setAgents((prev) => {
+        const eligibleAgents = prev.filter(
+          (a) => a.status === 'working' && a.isSeated && !a.targetPosition
+        );
+        if (eligibleAgents.length === 0) return prev;
+
+        const chosenAgent = eligibleAgents[Math.floor(Math.random() * eligibleAgents.length)];
+        const routineStations = ['station_coffee', 'station_cat', 'station_restroom'];
+        const chosenStation = routineStations[Math.floor(Math.random() * routineStations.length)];
+
+        setTimeout(() => {
+          dispatchRef.current(chosenAgent.id, chosenStation, false);
+        }, 150);
+
+        return prev;
+      });
+    }, 65000);
+
+    return () => clearInterval(routineTimer);
+  }, []);
+
+  /**
+   * 💼 Giả lập tín hiệu công việc mới từ backend (Push Event):
+   * Khi có công việc giao tới, cả 4 nhân sự hào hứng trao đổi thảo luận nhiệt tình theo chuỗi!
    */
   const simulateBackendEvent = useCallback(() => {
-    setAgents((prev) => {
-      const randomIdx = Math.floor(Math.random() * prev.length);
-      const targetAgent = prev[randomIdx];
-      const newStatus: AgentStatus = targetAgent.status === 'idle' ? 'working' : 'idle';
-      const quote = getRandomAmbientQuote(targetAgent.id);
+    WORK_COLLABORATION_DIALOGUES.forEach((item, index) => {
+      setTimeout(() => {
+        setAgents((prev) => {
+          const speaker = prev.find((a) => a.id === item.speaker);
+          if (!speaker) return prev;
 
-      addDialogue(
-        targetAgent.codename || targetAgent.name,
-        targetAgent.color,
-        quote.chatMessage,
-        quote.icon
-      );
+          addDialogue(
+            speaker.codename || speaker.name,
+            speaker.color,
+            item.text,
+            item.icon,
+            speaker.id
+          );
 
-      return prev.map((a, idx) =>
-        idx === randomIdx
-          ? {
-              ...a,
-              status: newStatus,
-              thoughtIcon: quote.icon,
-              thoughtText: quote.thought,
-              progress: newStatus === 'working' ? Math.floor(Math.random() * 50) + 20 : 100
-            }
-          : a
-      );
+          return prev.map((a) =>
+            a.id === speaker.id
+              ? {
+                  ...a,
+                  status: 'working',
+                  thoughtIcon: item.icon,
+                  thoughtText: item.text,
+                  progress: Math.floor(Math.random() * 40) + 35
+                }
+              : a
+          );
+        });
+      }, index * 2000); // Cách nhau 2s cho người dùng đọc rõ từng tin nhắn trực tiếp trên đầu
     });
   }, [addDialogue]);
 

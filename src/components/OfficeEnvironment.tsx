@@ -39,6 +39,12 @@ export function OfficeEnvironment() {
       {/* 7. Khu vực Sofa tiếp khách VIP bọc da kem taupe & Bàn trà hai bên phòng */}
       <SideLounges />
 
+      {/* 7.5. Quầy pha cà phê & Pantry công sở cao cấp (Executive Coffee & Espresso Bar) */}
+      <CoffeePantryBar />
+
+      {/* 7.6. Góc bát ăn & chăm sóc mèo GitCat (Cat Feeding Corner) */}
+      <CatFeedingCorner />
+
       {/* 8. Cây xanh văn phòng trong chậu gốm sứ trắng thanh lịch */}
       <OfficePlants />
     </group>
@@ -379,7 +385,7 @@ function WindowsAndDoors() {
         </mesh>
       </group>
 
-      {/* Cửa ra vào màu trắng bên tường phải (Right Door) */}
+      {/* Cửa nhà vệ sinh Restroom bên tường phải (Executive Restroom Door) */}
       <group position={[5.72, 1.5, -3.2]} rotation={[0, -Math.PI / 2, 0]}>
         {/* Khung bao cửa trắng */}
         <mesh>
@@ -396,6 +402,36 @@ function WindowsAndDoors() {
           <cylinderGeometry args={[0.015, 0.015, 0.12, 12]} />
           <meshStandardMaterial color="#cbd5e1" metalness={0.9} />
         </mesh>
+
+        {/* Biển chỉ dẫn kim loại sang trọng gắn trên đầu cửa: 🚻 RESTROOM */}
+        <group position={[0, 1.55, 0.04]}>
+          <mesh>
+            <boxGeometry args={[0.6, 0.16, 0.02]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.3} />
+          </mesh>
+          <mesh position={[0, 0, 0.012]}>
+            <planeGeometry args={[0.56, 0.13]} />
+            <meshBasicMaterial color="#0284c7" />
+          </mesh>
+          <Html position={[0, 0, 0.02]} center distanceFactor={14} style={{ pointerEvents: 'none' }}>
+            <div
+              style={{
+                color: '#ffffff',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '9px',
+                fontWeight: 800,
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                letterSpacing: '0.5px'
+              }}
+            >
+              <span>🚻</span>
+              <span>RESTROOM</span>
+            </div>
+          </Html>
+        </group>
       </group>
 
       {/* Bảng thông báo treo tường bên phải */}
@@ -819,6 +855,154 @@ function OfficePlants() {
           <meshStandardMaterial color="#16a34a" roughness={0.5} />
         </mesh>
       </group>
+    </group>
+  );
+}
+
+/**
+ * ☕ Quầy pha cà phê & Pantry công sở cao cấp (Executive Coffee & Espresso Bar)
+ */
+function CoffeePantryBar() {
+  return (
+    <group position={[5.25, 0, -1.4]} rotation={[0, -Math.PI / 2, 0]}>
+      {/* 1. Bàn quầy bar đá cẩm thạch trắng viền gỗ sồi */}
+      <mesh position={[0, 0.48, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.5, 0.96, 0.7]} />
+        <meshStandardMaterial color="#f8fafc" roughness={0.2} metalness={0.1} />
+      </mesh>
+      {/* Mặt đá thạch anh vân mây phía trên */}
+      <mesh position={[0, 0.97, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.56, 0.05, 0.74]} />
+        <meshStandardMaterial color="#0f172a" roughness={0.15} metalness={0.2} />
+      </mesh>
+
+      {/* 2. Máy pha cà phê Espresso cao cấp bằng thép không gỉ mạ chrome */}
+      <group position={[-0.32, 1.0, 0]}>
+        {/* Thân máy chính */}
+        <mesh position={[0, 0.22, 0]} castShadow>
+          <boxGeometry args={[0.38, 0.44, 0.32]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.85} roughness={0.15} />
+        </mesh>
+        {/* Khay hâm nóng tách trên nóc máy */}
+        <mesh position={[0, 0.45, 0]}>
+          <boxGeometry args={[0.34, 0.02, 0.28]} />
+          <meshStandardMaterial color="#334155" metalness={0.9} />
+        </mesh>
+        {/* Vòi chiết xuất đôi */}
+        <mesh position={[0, 0.16, 0.18]}>
+          <cylinderGeometry args={[0.025, 0.025, 0.06, 12]} />
+          <meshStandardMaterial color="#0f172a" metalness={0.9} />
+        </mesh>
+        {/* Nút bấm & Đèn LED báo sẵn sàng */}
+        <mesh position={[0.1, 0.32, 0.165]}>
+          <circleGeometry args={[0.015, 12]} />
+          <meshBasicMaterial color="#10b981" />
+        </mesh>
+        {/* Khay hứng nước thải dưới chân */}
+        <mesh position={[0, 0.02, 0.1]}>
+          <boxGeometry args={[0.36, 0.04, 0.14]} />
+          <meshStandardMaterial color="#475569" metalness={0.8} />
+        </mesh>
+      </group>
+
+      {/* 3. Tách cà phê sứ trắng bốc hơi nóng thơm phức */}
+      <group position={[-0.32, 1.05, 0.16]}>
+        <mesh position={[0, 0.04, 0]}>
+          <cylinderGeometry args={[0.035, 0.025, 0.07, 12]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.1} />
+        </mesh>
+        {/* Lớp bọt cà phê Crema nâu vàng */}
+        <mesh position={[0, 0.072, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.03, 12]} />
+          <meshStandardMaterial color="#78350f" roughness={0.6} />
+        </mesh>
+      </group>
+
+      {/* 4. Hũ thủy tinh đựng hạt cà phê rang Arabica */}
+      <group position={[0.25, 1.0, -0.05]}>
+        <mesh position={[0, 0.12, 0]}>
+          <cylinderGeometry args={[0.07, 0.07, 0.22, 16]} />
+          <meshPhysicalMaterial color="#ffffff" transmission={0.9} opacity={0.3} transparent roughness={0.1} />
+        </mesh>
+        {/* Khối hạt cà phê bên trong */}
+        <mesh position={[0, 0.08, 0]}>
+          <cylinderGeometry args={[0.065, 0.065, 0.14, 12]} />
+          <meshStandardMaterial color="#451a03" roughness={0.8} />
+        </mesh>
+        {/* Nắp hũ gỗ sồi */}
+        <mesh position={[0, 0.24, 0]}>
+          <cylinderGeometry args={[0.075, 0.075, 0.03, 16]} />
+          <meshStandardMaterial color="#b45309" roughness={0.4} />
+        </mesh>
+      </group>
+
+      {/* 5. Khay 3 cốc sứ văn phòng xếp gọn gàng */}
+      {[0.12, 0.26, 0.4].map((x, i) => (
+        <mesh key={i} position={[x, 1.03, 0.16]}>
+          <cylinderGeometry args={[0.03, 0.02, 0.06, 12]} />
+          <meshStandardMaterial color={i === 0 ? '#0284c7' : i === 1 ? '#f97316' : '#ffffff'} roughness={0.2} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/**
+ * 🐱 Góc Bát Ăn & Chăm Sóc Linh Vật Mèo GitCat (GitCat Feeding Corner)
+ */
+function CatFeedingCorner() {
+  return (
+    <group position={[-5.15, 0, -2.4]} rotation={[0, Math.PI / 2, 0]}>
+      {/* 1. Thảm nỉ tròn màu be kem cho mèo */}
+      <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.55, 32]} />
+        <meshStandardMaterial color="#fef3c7" roughness={0.7} />
+      </mesh>
+
+      {/* 2. Đôi bát ăn thú cưng inox */}
+      {/* Bát 1: Hạt khô dinh dưỡng Cat Kibble */}
+      <group position={[-0.18, 0, 0]}>
+        <mesh position={[0, 0.03, 0]}>
+          <cylinderGeometry args={[0.09, 0.07, 0.06, 16]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
+        </mesh>
+        {/* Hạt thức ăn màu nâu vàng giòn rụm */}
+        <mesh position={[0, 0.05, 0]}>
+          <cylinderGeometry args={[0.075, 0.05, 0.02, 12]} />
+          <meshStandardMaterial color="#78350f" roughness={0.8} />
+        </mesh>
+      </group>
+
+      {/* Bát 2: Nước lọc tinh khiết */}
+      <group position={[0.18, 0, 0]}>
+        <mesh position={[0, 0.03, 0]}>
+          <cylinderGeometry args={[0.09, 0.07, 0.06, 16]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
+        </mesh>
+        {/* Mặt nước trong veo phản chiếu ánh sáng */}
+        <mesh position={[0, 0.048, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.075, 16]} />
+          <meshStandardMaterial color="#38bdf8" roughness={0.05} metalness={0.3} />
+        </mesh>
+      </group>
+
+      {/* 3. Đĩa sứ súp thưởng cá ngừ thơm lừng */}
+      <group position={[0, 0, 0.22]}>
+        <mesh position={[0, 0.015, 0]}>
+          <cylinderGeometry args={[0.08, 0.06, 0.025, 16]} />
+          <meshStandardMaterial color="#f8fafc" roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.065, 14]} />
+          <meshStandardMaterial color="#ea580c" roughness={0.5} />
+        </mesh>
+      </group>
+
+      {/* 4. Đồ chơi cuộn len đỏ cho GitCat vờn */}
+      <mesh position={[0.26, 0.04, 0.22]}>
+        <sphereGeometry args={[0.04, 12, 12]} />
+        <meshStandardMaterial color="#ef4444" roughness={0.8} />
+      </mesh>
     </group>
   );
 }

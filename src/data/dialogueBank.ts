@@ -5,141 +5,250 @@
  * Tán gẫu cùng mèo GitCat và Xin vía an lạc tại Đài Sen Bái Phật.
  */
 
+/**
+ * @file dialogueBank.ts
+ * @description Kho dữ liệu câu thoại phong phú, dí dỏm và tự nhiên của đội ngũ AI Agent.
+ * Tách biệt rõ ràng:
+ * 1. Tin tức công nghệ xác thực & thời sự chính thống (Được phép lặp lại nhiều lần).
+ * 2. Câu thoại hài hước nghề Dev & Meme (Cơ chế chống lặp trong ngày).
+ * 3. Chuỗi trao đổi công việc nhiệt tình khi có task mới.
+ * 4. Sinh hoạt đời thường: Pha cà phê, cho mèo GitCat ăn, xin đi vệ sinh.
+ */
+
 export interface AmbientQuote {
   agentId?: 'agent_1' | 'agent_2' | 'agent_3' | 'agent_4'; // Pé Na, Pé Ken, Lão Lục, Lão Cửu
   icon: string;
   thought: string;
   chatMessage: string;
+  category?: 'meme' | 'verified_news' | 'work' | 'routine';
 }
 
 /**
- * Danh sách câu thoại chung ngẫu nhiên cho toàn văn phòng
+ * 📰 TIN TỨC CÔNG NGHỆ XÁC THỰC & THỜI SỰ CHÍNH THỐNG (Được phép lặp lại nhiều lần)
  */
-export const AMBIENT_QUOTES: AmbientQuote[] = [
-  // 🌤️ Thời tiết & Môi trường văn phòng
+export const VERIFIED_TECH_NEWS: AmbientQuote[] = [
+  {
+    agentId: 'agent_1', // Pé Na
+    icon: '📊',
+    thought: 'Báo cáo GitHub Octoverse 2026...',
+    chatMessage: 'Bản tin GitHub Octoverse: TypeScript và Python tiếp tục là 2 ngôn ngữ thống trị trong hệ sinh thái xây dựng Autonomous Coding Agents!',
+    category: 'verified_news'
+  },
+  {
+    agentId: 'agent_1', // Pé Na
+    icon: '🤖',
+    thought: 'Benchmark AI Reasoning mới nhất...',
+    chatMessage: 'Tin tức AI xác thực: Các mô hình suy luận đa bước thế hệ mới vừa đạt độ chính xác 94.8% trên bài thi toán học và biên dịch mã nguồn.',
+    category: 'verified_news'
+  },
+  {
+    agentId: 'agent_4', // Lão Cửu
+    icon: '☁️',
+    thought: 'Thông số cụm Data Center Kubernetes v1.33...',
+    chatMessage: 'Bản tin hạ tầng Cloud: Tiêu chuẩn Kubernetes mới tối ưu hóa 35% tài nguyên RAM cho các cụm Pod AI chạy mô hình cục bộ.',
+    category: 'verified_news'
+  },
+  {
+    agentId: 'agent_3', // Lão Lục
+    icon: '🔒',
+    thought: 'Bản tin an ninh mạng CVE cập nhật...',
+    chatMessage: 'Bản tin An ninh bảo mật: Khuyến nghị các dự án cập nhật bản vá thư viện định kỳ để ngăn chặn lỗ hổng Dependency Confusion.',
+    category: 'verified_news'
+  },
+  {
+    agentId: 'agent_2', // Pé Ken
+    icon: '⚡',
+    thought: 'Chuẩn WebAssembly WebGL mới...',
+    chatMessage: 'Tin chuẩn quốc tế W3C: Công nghệ WebAssembly Threads và WebGPU chính thức hỗ trợ tăng tốc đồ họa 3D thời gian thực trên mọi trình duyệt.',
+    category: 'verified_news'
+  },
   {
     icon: '🌤️',
-    thought: 'Trời 27°C mát dịu, chill chill gõ phím...',
-    chatMessage: 'Dự báo hôm nay trời trong xanh 27°C, rất thích hợp để ngồi máy lạnh húp cà phê ngắm bug bay!'
-  },
+    thought: 'Dự báo thời tiết văn phòng...',
+    chatMessage: 'Dự báo khí tượng: Nhiệt độ phòng duy trì ổn định 25.5°C mát mẻ, độ ẩm lý tưởng 55% cho máy chủ và nhân sự làm việc.',
+    category: 'verified_news'
+  }
+];
+
+/**
+ * 🎭 CÂU THOẠI HÀI HƯỚC NGHỀ DEV & MEME (Cơ chế chống lặp trong ngày)
+ */
+export const MEME_DEV_QUOTES: AmbientQuote[] = [
   {
     icon: '🌧️',
     thought: 'Mưa rơi lất phất ngoài hiên...',
-    chatMessage: 'Ngoài trời bắt đầu đổ mưa rồi, ai phơi quần áo thì nhớ rút, còn ai đang code thì... cứ code tiếp đi!'
+    chatMessage: 'Ngoài trời bắt đầu đổ mưa rồi, ai phơi quần áo thì nhớ rút, còn ai đang code thì... cứ code tiếp đi!',
+    category: 'meme'
   },
   {
     icon: '⚡',
     thought: 'Trời sắp giông gió, lưu file ngay!',
-    chatMessage: 'Nghe tiếng sấm chớp đùng đùng kìa, anh em bấm Ctrl+S lia lịa kẻo cúp điện hối không kịp!'
-  },
-  {
-    icon: '🍃',
-    thought: 'Gió thu se lạnh, khoác thêm áo nào!',
-    chatMessage: 'Gió mùa về se lạnh, phòng làm việc ấm cúng thế này chỉ muốn ngồi code tới sáng mai!'
-  },
-
-  // 📰 Tin tức công nghệ & Xu hướng 2026
-  {
-    agentId: 'agent_1', // Pé Na
-    icon: '🤖',
-    thought: 'Pé Na vừa quét được bài báo AI siêu hot!',
-    chatMessage: 'Vừa đọc bài báo quốc tế: AI đã giải được thuật toán thiên niên kỷ nhưng vẫn chào thua khi người dùng bảo "đổi màu logo cho hợp phong thủy"!'
+    chatMessage: 'Nghe tiếng sấm chớp kìa, anh em bấm Ctrl+S lia lịa kẻo cúp điện hối không kịp!',
+    category: 'meme'
   },
   {
     agentId: 'agent_1', // Pé Na
     icon: '📈',
-    thought: 'Giá cà phê Arabica hôm nay tăng nhẹ...',
-    chatMessage: 'Tin vắn tài chính: Giá cà phê tăng 5%, hèn chi sáng nay ngụm cà phê của Pé Ken đắng đót lạ thường!'
+    thought: 'Giá cà phê Arabica tăng nhẹ...',
+    chatMessage: 'Tin vắn thị trường: Giá cà phê tăng 5%, hèn chi sáng nay ngụm cà phê của Pé Ken đắng đót lạ thường!',
+    category: 'meme'
   },
-  {
-    agentId: 'agent_4', // Lão Cửu
-    icon: '🚀',
-    thought: 'Cloud node chạy mượt như lụa!',
-    chatMessage: 'Breaking News: Cụm server node-01 vừa đạt kỷ lục 99.999% uptime mà không cần khởi động lại. Lão Cửu gánh team xuất sắc!'
-  },
-  {
-    agentId: 'agent_3', // Lão Lục
-    icon: '🛡️',
-    thought: 'Tỉ lệ bug hôm nay đạt ngưỡng 0%!',
-    chatMessage: 'Báo cáo kiểm toán chất lượng: Tỉ lệ an toàn bảo mật đạt 100%, không phát hiện lỗ hổng SQL Injection nào, công đức vô lượng!'
-  },
-
-  // 💻 Hài hước nghề Dev & Đời sống văn phòng
   {
     agentId: 'agent_2', // Pé Ken
     icon: '💻',
     thought: 'Tính năng này không phải lỗi đâu nha!',
-    chatMessage: 'Tính năng này trên máy mình chạy ngon ơ, sang máy production mà lỗi thì chắc chắn là do... yếu tố tâm linh!'
+    chatMessage: 'Tính năng này trên máy mình chạy ngon ơ, sang máy production mà lỗi thì chắc chắn là do... phong thủy!',
+    category: 'meme'
   },
   {
     agentId: 'agent_2', // Pé Ken
     icon: '⌨️',
     thought: 'Switch Blue gõ nghe đã tai ghê!',
-    chatMessage: 'Bàn phím cơ gõ tanh tách như pháo nổ, nghe giai điệu này là biết chuẩn bị có commit triệu view!'
+    chatMessage: 'Bàn phím cơ gõ tanh tách như pháo nổ, nghe giai điệu này là biết chuẩn bị có commit triệu view!',
+    category: 'meme'
   },
   {
     agentId: 'agent_3', // Lão Lục
     icon: '🔍',
     thought: 'Lão Lục lại bắt được biến dị thường!',
-    chatMessage: 'Lão Lục vừa review xong một Pull Request: ai đặt tên biến `temp_dung_xoa_nha_123` thì tự giác bước ra thú tội nhận phạt ly trà sữa!'
+    chatMessage: 'Lão Lục vừa review một PR: ai đặt tên biến `temp_dung_xoa_nha_123` thì tự giác bao cả phòng trà sữa nha!',
+    category: 'meme'
   },
   {
     agentId: 'agent_4', // Lão Cửu
     icon: '☕',
     thought: 'Làm một ly Americano đá không đường!',
-    chatMessage: 'Uống ly cà phê đen đá vào người, cảm giác nhịp tim đồng bộ chuẩn xác với xung nhịp CPU 4.8GHz!'
+    chatMessage: 'Uống ly cà phê đen đá vào người, cảm giác nhịp tim đồng bộ chuẩn xác với xung nhịp CPU 4.8GHz!',
+    category: 'meme'
   },
   {
     icon: '🧋',
     thought: 'Trà sữa 50% đường, 100% bug-free!',
-    chatMessage: 'Quán trà sữa đầu ngõ vừa có voucher giảm giá 40%, ai ké đơn trà sữa nướng trân châu hoàng kim hông?'
+    chatMessage: 'Quán trà sữa đầu ngõ vừa có voucher giảm giá 40%, ai ké đơn trà sữa nướng trân châu hoàng kim hông?',
+    category: 'meme'
   },
   {
     icon: '🍕',
     thought: 'Hôm nay tăng ca có ai bao pizza không?',
-    chatMessage: 'Nghe đồn mùi bánh pizza phô mai thơm lừng sắp xuất hiện tại phòng pantry, có động lực code tiếp rồi!'
+    chatMessage: 'Nghe đồn mùi bánh pizza phô mai thơm lừng sắp xuất hiện tại phòng pantry, có động lực code tiếp rồi!',
+    category: 'meme'
   },
   {
     agentId: 'agent_2', // Pé Ken
     icon: '🚀',
     thought: 'Git push force và quay lưng bước đi...',
-    chatMessage: 'Gõ `git push --force` rồi quay lưng đi lấy nước, phong thái điềm tĩnh như siêu điệp viên không nhìn vụ nổ đằng sau!'
-  },
-
-  // 🙏 Xin vía an lạc tại Đài Sen Bái Phật
-  {
-    icon: '🙏',
-    thought: 'Tâm bất biến giữa dòng đời vạn bug!',
-    chatMessage: 'Đứng trước kim thân Đức Phật thắp nén hương trầm, tự nhiên thấy lòng thanh thản, mọi conflict merge tự động tiêu tan!'
-  },
-  {
-    icon: '✨',
-    thought: 'Linh cảm quẻ xăm đại cát đại lợi!',
-    chatMessage: 'Sáng nay xin quẻ xăm đầu ngày: "Công danh tấn tới, Pull Request không vướng conflict nào, sếp duyệt ngay tắp lự"!'
-  },
-  {
-    icon: '🧘',
-    thought: 'Hít vào bình an, thở ra giải tỏa stress...',
-    chatMessage: 'Hít vào tâm tĩnh lặng, thở ra miệng mỉm cười. Code nhiều bug cũng là cơ duyên để rèn luyện đức tính kiên nhẫn!'
-  },
-
-  // 🐱 Tán gẫu cùng mèo GitCat
-  {
-    icon: '🐾',
-    thought: 'GitCat lại nằm ngủ quên lối về...',
-    chatMessage: 'GitCat vừa trèo lên nóc thùng máy chủ nằm sưởi ấm, ngủ ngáy khò khò trông cưng xỉu!'
-  },
-  {
-    icon: '😻',
-    thought: 'Cho mèo ăn súp thưởng thôi!',
-    chatMessage: 'Đề nghị cấp kinh phí mua thêm 5 gói súp thưởng cá ngừ cho GitCat vì thành tích tuần tra văn phòng nghiêm túc!'
+    chatMessage: 'Gõ `git push --force` rồi quay lưng đi lấy nước, phong thái điềm tĩnh như siêu điệp viên không nhìn vụ nổ đằng sau!',
+    category: 'meme'
   },
   {
     icon: '📦',
     thought: 'Mèo chê nệm êm, chỉ thích thùng giấy!',
-    chatMessage: 'Mua cái nệm sofa nhung xịn xò 500k, kết quả con mèo GitCat nó nhảy tọt vào cái thùng các-tông đựng vỏ bàn phím nằm ngủ!'
+    chatMessage: 'Mua cái nệm sofa nhung xịn xò 500k, kết quả con mèo GitCat nó nhảy tọt vào cái thùng các-tông đựng vỏ bàn phím nằm ngủ!',
+    category: 'meme'
   }
 ];
+
+/**
+ * 💼 CHUỖI ĐỐI THOẠI TRAO ĐỔI CÔNG VIỆC NHIỆT TÌNH (Khi có task mới giao tới)
+ */
+export const WORK_COLLABORATION_DIALOGUES = [
+  {
+    speaker: 'agent_2', // Pé Ken
+    text: 'Cả đội chú ý! Đã có nhiệm vụ mới giao tới: Pé Na crawl tài liệu, Lão Lục dựng test case, Lão Cửu mở rộng pod nha!',
+    icon: '🚀'
+  },
+  {
+    speaker: 'agent_1', // Pé Na
+    text: 'Pé Na nhận lệnh! Đang phân tích cấu trúc API endpoints và trích xuất dữ liệu mẫu!',
+    icon: '🔍'
+  },
+  {
+    speaker: 'agent_3', // Lão Lục
+    text: 'Đã sẵn sàng bộ test audit 100 tiêu chuẩn Clean Code, đố con bug nào lọt qua mắt Lão Lục!',
+    icon: '🛡️'
+  },
+  {
+    speaker: 'agent_4', // Lão Cửu
+    text: 'Cụm máy chủ Kubernetes đã cấp phát đủ CPU/RAM, đường truyền 10Gbps sẵn sàng deploy!',
+    icon: '⚡'
+  }
+];
+
+/**
+ * ☕ SINH HOẠT VĂN PHÒNG ĐỜI THƯỜNG (Cà phê, cho mèo ăn, đi vệ sinh)
+ */
+export const OFFICE_ROUTINE_SCRIPTS = {
+  coffee: {
+    startThought: 'Buồn ngủ quá, qua quầy pha ly cà phê thôi...',
+    startSpeech: 'Để tớ ghé quầy pha ly Americano nạp caffeine lấy lại sự tỉnh táo đã!',
+    endThought: 'Cà phê thơm nức mũi, tỉnh cả ngủ!',
+    endSpeech: 'Cà phê thơm ngon đậm đà! Năng lượng nạp đầy 100%, về bàn code tiếp thôi!'
+  },
+  cat: {
+    startThought: 'Tới giờ cho GitCat ăn súp thưởng rồi!',
+    startSpeech: 'GitCat ơi ra đây ăn súp thưởng cá ngừ với hạt giòn nè cưng! 🐱',
+    endThought: 'Mèo ăn sạch bát, ngoan ghê!',
+    endSpeech: 'GitCat ăn no nê rồi lăn ra phơi bụng, trông cưng xỉu!'
+  },
+  restroom: {
+    startThought: 'Ghé restroom giải lao chút...',
+    startSpeech: 'Xin phép anh em tớ ghé restroom giải lao 30 giây nha!',
+    endThought: 'Refresh xong rồi, sảng khoái ghê!',
+    endSpeech: 'Đã rửa mặt refresh tinh thần cực kỳ sảng khoái, quay lại vị trí chiến đấu tiếp!'
+  }
+};
+
+/**
+ * Bộ nhớ theo dõi câu meme đã nói trong ngày (tránh lặp lại)
+ */
+const seenMemeIndexes = new Set<number>();
+
+/**
+ * Lấy câu thoại ngẫu nhiên: Ưu tiên tin tức xác thực (cho phép lặp),
+ * còn câu hài hước thì lọc chống lặp nghiêm ngặt.
+ */
+export function getSmartAmbientQuote(specificAgentId?: string): AmbientQuote {
+  // 65% xác suất chọn Tin tức xác thực công nghệ (cho phép lặp bình thường)
+  // 35% xác suất chọn Câu thoại meme hài hước (lọc chống lặp)
+  const pickNews = Math.random() < 0.65;
+
+  if (pickNews) {
+    let pool = VERIFIED_TECH_NEWS;
+    if (specificAgentId) {
+      const filtered = pool.filter((q) => !q.agentId || q.agentId === specificAgentId);
+      if (filtered.length > 0) pool = filtered;
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+  } else {
+    // Chọn từ kho Meme chưa nói
+    let availableIndexes: number[] = [];
+    MEME_DEV_QUOTES.forEach((q, idx) => {
+      if (!seenMemeIndexes.has(idx)) {
+        if (!specificAgentId || !q.agentId || q.agentId === specificAgentId) {
+          availableIndexes.push(idx);
+        }
+      }
+    });
+
+    // Nếu đã nói hết tất cả câu meme, reset lại bộ nhớ
+    if (availableIndexes.length === 0) {
+      seenMemeIndexes.clear();
+      availableIndexes = MEME_DEV_QUOTES.map((_, i) => i);
+    }
+
+    const selectedIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+    seenMemeIndexes.add(selectedIndex);
+    return MEME_DEV_QUOTES[selectedIndex];
+  }
+}
+
+/**
+ * Tương thích ngược với các lệnh gọi cũ
+ */
+export const AMBIENT_QUOTES = [...VERIFIED_TECH_NEWS, ...MEME_DEV_QUOTES];
+export function getRandomAmbientQuote(specificAgentId?: string): AmbientQuote {
+  return getSmartAmbientQuote(specificAgentId);
+}
 
 /**
  * Lời thoại hài hước định kỳ từ Tượng Phật
@@ -212,18 +321,6 @@ export const GITCAT_REACTIONS = [
   '🐟 *Meo meo!* "Cảm ơn bạn đã vuốt ve, nhưng lát nữa nhớ chia cho tớ miếng cá ngừ trong pantry nha!"',
   '🐱 *Khò khò...* GitCat lim dim đôi mắt, liếm nhẹ mu bàn tay bạn đầy âu yếm.'
 ];
-
-/**
- * Lấy ngẫu nhiên một câu thoại hài hước
- */
-export function getRandomAmbientQuote(specificAgentId?: string): AmbientQuote {
-  let pool = AMBIENT_QUOTES;
-  if (specificAgentId) {
-    const matched = AMBIENT_QUOTES.filter((q) => !q.agentId || q.agentId === specificAgentId);
-    if (matched.length > 0) pool = matched;
-  }
-  return pool[Math.floor(Math.random() * pool.length)];
-}
 
 /**
  * Lấy ngẫu nhiên phản ứng vuốt ve của GitCat

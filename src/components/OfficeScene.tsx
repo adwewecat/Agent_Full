@@ -203,6 +203,7 @@ export function OfficeScene({
               accessory={agent.accessory}
               thoughtIcon={agent.thoughtIcon}
               thoughtText={agent.thoughtText}
+              speechText={agent.speechText}
               isSelected={selectedAgentId === agent.id}
               onSelect={onSelectAgent}
               onArrival={onArrival}

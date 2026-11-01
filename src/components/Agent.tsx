@@ -34,6 +34,7 @@ export interface AgentProps {
   accessory?: string;
   thoughtIcon?: string;
   thoughtText?: string;
+  speechText?: string | null;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
   onArrival?: (id: string, finalPosition: [number, number, number]) => void;
@@ -54,6 +55,7 @@ function AgentModel({
   accentColor = '#f59e0b',
   thoughtIcon = '💬',
   thoughtText = 'Sẵn sàng nhận lệnh...',
+  speechText = null,
   isSelected = false,
   onSelect,
   onArrival,
@@ -332,8 +334,72 @@ function AgentModel({
         </mesh>
       )}
 
-      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘP THOẠI HÌNH CHỮ NHẬT (Hiển thị khi được chọn, hover, đang bái Phật, hoặc đang né đạn đạo) */}
-      {(isSelected || isHovered || status === 'praying' || status === 'dodging') && (
+      {/* 💬 HỘP THOẠI CHAT TRỰC TIẾP TRÊN ĐẦU NHÂN VẬT (Rõ nét, dễ đọc, tự động hiển thị khi nói) */}
+      {speechText && (
+        <Html
+          position={[0, isSeated ? 2.35 : 2.65, 0]}
+          center
+          distanceFactor={12}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div
+            style={{
+              minWidth: '150px',
+              maxWidth: '240px',
+              padding: '8px 12px',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(15, 23, 42, 0.96)',
+              border: `2px solid ${color}`,
+              boxShadow: `0 8px 24px ${color}55, 0 3px 10px rgba(0,0,0,0.6)`,
+              backdropFilter: 'blur(8px)',
+              color: '#ffffff',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '11px',
+              fontWeight: 700,
+              lineHeight: '1.45',
+              textAlign: 'center',
+              userSelect: 'none',
+              position: 'relative'
+            }}
+          >
+            <div
+              style={{
+                fontSize: '9.5px',
+                color,
+                fontWeight: 800,
+                marginBottom: '3px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px'
+              }}
+            >
+              <span>💬</span>
+              <span>{codename || name} vừa nói:</span>
+            </div>
+            <div style={{ color: '#f8fafc', fontWeight: 600 }}>
+              "{speechText}"
+            </div>
+            {/* Mũi tên trỏ xuống đầu nhân vật */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-8px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 0,
+                height: 0,
+                borderLeft: '7px solid transparent',
+                borderRight: '7px solid transparent',
+                borderTop: `8px solid ${color}`
+              }}
+            />
+          </div>
+        </Html>
+      )}
+
+      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘP THOẠI HÌNH CHỮ NHẬT (Chỉ hiển thị khi không có chat đang nói) */}
+      {(isSelected || isHovered || status === 'praying' || status === 'dodging') && !speechText && (
         <Html
           position={[0, isSeated ? 2.15 : 2.45, 0]}
           center

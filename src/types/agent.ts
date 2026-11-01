@@ -55,6 +55,8 @@ export interface AgentData {
   thoughtIcon: string;
   /** Câu thoại / Suy nghĩ hiện tại */
   thoughtText: string;
+  /** Tin nhắn chat hiển thị trực tiếp trên đầu nhân vật */
+  speechText?: string | null;
   /** Đường dẫn file model 3D */
   modelUrl: string;
 }
@@ -68,8 +70,8 @@ export interface WorkstationData {
   position: [number, number, number];
   /** Hướng quay của trạm tính theo radian (Y axis) */
   rotation: number;
-  /** Loại trạm (coding, research, server, meeting, arcade, shrine) */
-  type: 'coding' | 'research' | 'server' | 'lounge' | 'arcade' | 'shrine';
+  /** Loại trạm (coding, research, server, meeting, arcade, shrine, coffee, cat, restroom) */
+  type: 'coding' | 'research' | 'server' | 'lounge' | 'arcade' | 'shrine' | 'coffee' | 'cat' | 'restroom';
   /** Độ dời tương đối của vị trí ngồi/đứng so với tâm trạm [X, Y, Z] */
   seatOffset: [number, number, number];
   /** Góc xoay của nhân vật khi ngồi/đứng tại trạm (so với góc quay của trạm) */
