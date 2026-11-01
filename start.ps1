@@ -38,8 +38,9 @@ if (-not (Test-Path "node_modules")) {
 }
 
 # 3. Khởi động Dev Server
-Write-Host " [*] Đang khởi chạy 3D Dashboard tại http://localhost:3000 ..." -ForegroundColor Cyan
+Write-Host " [*] Đang khởi chạy 3D Dashboard tại http://localhost:5173 ..." -ForegroundColor Cyan
 Write-Host " [*] Nhấn Ctrl + C để dừng máy chủ bất kỳ lúc nào." -ForegroundColor DarkGray
 Write-Host ""
 
 & npm.cmd run dev
+

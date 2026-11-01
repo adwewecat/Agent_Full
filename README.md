@@ -78,7 +78,7 @@ Khi vừa cài lại Windows hoặc clone sang máy tính mới:
      # hoặc
      npm run dev
      ```
-   - Ứng dụng sẽ tự động mở tại: `http://localhost:3000`
+   - Ứng dụng sẽ tự động mở tại: `http://localhost:5173`
 
 5. **Đọc tài liệu trung tâm**:
    - Mở và đọc file [`GEMINI.md`](./GEMINI.md) để xem tiến độ hiện tại và danh sách các việc cần làm tiếp theo.
