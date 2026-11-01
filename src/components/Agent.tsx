@@ -1,9 +1,12 @@
 /**
  * @file Agent.tsx
- * @description Component nhân vật 3D đại diện cho AI Agent trong văn phòng ảo.
- * Xử lý tương thích hình học và tọa độ điểm ngồi chuẩn xác (Seating Alignment),
- * hỗ trợ xoay người hướng về màn hình khi ngồi làm việc, điều chỉnh cao độ bù trừ
- * trọng tâm hoạt ảnh (Sit Y Compensation) để không bao giờ bị ngồi dưới ghế hay chìm sàn.
+ * @description Component nhân vật 3D đại diện cho AI Agent trong văn phòng điều hành công nghệ.
+ * Tích hợp phong cách doanh nhân/chuyên gia công nghệ hiện đại và chân thực (Realistic Executive):
+ * - Gương mặt người thật tinh tế (mắt hạnh nhân, lông mày, mũi 3D, môi tự nhiên, mái tóc công sở).
+ * - Trang phục vest / blazer doanh nhân (cổ áo sơ mi, ve áo vest, cà vạt lụa, thẻ ID chip an ninh, thắt lưng da).
+ * - Đồng hồ thông minh Smartwatch trên cổ tay trái.
+ * - Hệ thống định vị tọa độ ngồi ghế công thái học chuẩn xác (Seating Alignment),
+ *   bù trừ độ võng trọng tâm hoạt ảnh (Sit Y Compensation) ngăn chặn triệt để lỗi chìm sàn hay ngồi dưới ghế.
  */
 
 import { useRef, useEffect, useMemo, useState, Suspense } from 'react';
@@ -13,6 +16,7 @@ import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { AgentStatus } from '../types/agent';
 import { createAgentFace } from './AgentFace';
+import { createTorsoAttire, createWristWatch } from './AgentAttire';
 
 export interface AgentProps {
   id: string;
@@ -27,103 +31,13 @@ export interface AgentProps {
   blessed?: boolean;
   color?: string;
   accentColor?: string;
-  accessory?: 'cyber-visor' | 'headphones' | 'cat-ears' | 'cap';
+  accessory?: string;
   thoughtIcon?: string;
   thoughtText?: string;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
   onArrival?: (id: string, finalPosition: [number, number, number], nextStatus: AgentStatus) => void;
   modelUrl?: string;
-}
-
-/**
- * Phụ kiện 3D đặc trưng cho từng nhân vật để tạo cá tính và màu sắc rực rỡ
- */
-function AgentAccessory({
-  type,
-  color = '#38bdf8',
-  accentColor = '#f43f5e'
-}: {
-  type?: 'cyber-visor' | 'headphones' | 'cat-ears' | 'cap';
-  color?: string;
-  accentColor?: string;
-}) {
-  if (!type) return null;
-
-  switch (type) {
-    case 'cyber-visor':
-      return (
-        <group position={[0, 1.15, 0.13]} rotation={[-0.15, 0, 0]}>
-          <mesh>
-            <boxGeometry args={[0.28, 0.06, 0.06]} />
-            <meshStandardMaterial
-              color={color}
-              emissive={color}
-              emissiveIntensity={0.6}
-              roughness={0.2}
-              metalness={0.8}
-            />
-          </mesh>
-          <mesh position={[0, 0, 0.035]}>
-            <boxGeometry args={[0.24, 0.04, 0.02]} />
-            <meshBasicMaterial color="#ffffff" />
-          </mesh>
-        </group>
-      );
-
-    case 'headphones':
-      return (
-        <group position={[0, 1.15, 0]}>
-          <mesh position={[0, 0.1, 0]}>
-            <torusGeometry args={[0.2, 0.025, 8, 24, Math.PI]} />
-            <meshStandardMaterial color="#0f172a" roughness={0.3} />
-          </mesh>
-          <mesh position={[-0.2, -0.05, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.07, 0.07, 0.06, 16]} />
-            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
-          </mesh>
-          <mesh position={[0.2, -0.05, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.07, 0.07, 0.06, 16]} />
-            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
-          </mesh>
-        </group>
-      );
-
-    case 'cat-ears':
-      return (
-        <group position={[0, 1.25, 0]}>
-          <mesh position={[0, 0, 0]}>
-            <torusGeometry args={[0.18, 0.02, 8, 24, Math.PI]} />
-            <meshStandardMaterial color="#1e1b4b" />
-          </mesh>
-          <mesh position={[-0.12, 0.06, 0]} rotation={[0, 0, 0.25]}>
-            <coneGeometry args={[0.06, 0.12, 4]} />
-            <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.5} />
-          </mesh>
-          <mesh position={[0.12, 0.06, 0]} rotation={[0, 0, -0.25]}>
-            <coneGeometry args={[0.06, 0.12, 4]} />
-            <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.5} />
-          </mesh>
-        </group>
-      );
-
-    case 'cap':
-      return (
-        <group position={[0, 1.2, -0.04]} rotation={[-0.15, 0, 0]}>
-          <mesh position={[0, 0.02, 0]}>
-            <sphereGeometry args={[0.2, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <meshStandardMaterial color={color} roughness={0.7} />
-          </mesh>
-          <mesh position={[0, 0, -0.18]} rotation={[0.2, 0, 0]}>
-            <boxGeometry args={[0.22, 0.02, 0.12]} />
-            <meshStandardMaterial color={accentColor} />
-          </mesh>
-        </group>
-      );
-
-    default:
-      return null;
-  }
 }
 
 function AgentModel({
@@ -138,7 +52,6 @@ function AgentModel({
   blessed = false,
   color = '#3b82f6',
   accentColor = '#f59e0b',
-  accessory = 'headphones',
   thoughtIcon = '💬',
   thoughtText = 'Sẵn sàng nhận lệnh...',
   isSelected = false,
@@ -150,6 +63,15 @@ function AgentModel({
   const group = useRef<THREE.Group>(null);
   const currentPos = useRef(new THREE.Vector3(...position));
 
+  // Xác định màu vest/trang phục công sở chuẩn của từng Agent
+  const suitColor = useMemo(() => {
+    if (codename === 'Nova') return '#1e293b'; // Vest xanh Navy lãnh đạo
+    if (codename === 'Axel') return '#0f172a'; // Vest xám đen than chì
+    if (codename === 'Vesper') return '#831843'; // Vest đỏ mận quý phái
+    if (codename === 'Kip') return '#334155'; // Áo len cổ sơ mi xám slate
+    return '#1e293b';
+  }, [codename]);
+
   // Tải model GLTF và tách instance skeleton độc lập
   const gltf = useGLTF(modelUrl);
   const clone = useMemo(() => {
@@ -158,12 +80,12 @@ function AgentModel({
     // Xác định tone màu da tự nhiên và ấm áp theo từng Agent
     const skinColor =
       codename === 'Nova'
-        ? '#fed7aa' // Trắng hồng
+        ? '#fed7aa' // Trắng hồng tự nhiên
         : codename === 'Axel'
-        ? '#fde68a' // Năng động ấm áp
+        ? '#fde68a' // Tươi tắn khỏe khoắn
         : codename === 'Vesper'
         ? '#fff1f2' // Hồng phấn thanh tú
-        : '#fef08a'; // Tươi tắn
+        : '#fed7aa'; // Ấm áp
 
     clonedScene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
@@ -175,48 +97,75 @@ function AgentModel({
           // Tô màu da mặt ấm áp tự nhiên, xóa tan hoàn toàn vẻ trắng bệch ma-nơ-canh
           mesh.material = new THREE.MeshStandardMaterial({
             color: skinColor,
-            roughness: 0.5,
+            roughness: 0.55,
             metalness: 0.05
           });
         } else if (mesh.name === 'body-mesh') {
-          // Tô màu trang phục rực rỡ cá tính cho từng Agent
+          // Tô màu trang phục Vest công sở thanh lịch
           mesh.material = new THREE.MeshStandardMaterial({
-            color: color,
+            color: suitColor,
             roughness: 0.45,
-            metalness: 0.1
+            metalness: 0.08
           });
         } else if (mesh.material) {
           const mat = (mesh.material as THREE.Material).clone() as THREE.MeshStandardMaterial;
           mat.roughness = 0.45;
-          mat.metalness = 0.1;
+          mat.metalness = 0.08;
           mesh.material = mat;
         }
       }
     });
     return clonedScene;
-  }, [gltf.scene, codename, color]);
+  }, [gltf.scene, codename, suitColor]);
 
-  // Gắn gương mặt Chibi 3D sống động (mắt anime, lông mày, mũi, nụ cười, má hồng, tóc) vào xương 'head'
+  // Gắn phụ kiện & trang phục chuyên nghiệp vào các khớp xương tương ứng
   useEffect(() => {
+    // 1. Gương mặt người thật tinh tế & mái tóc gắn vào xương 'head'
     const headBone = clone.getObjectByName('head');
-    if (!headBone) return;
+    let faceGroup: THREE.Group | null = null;
+    if (headBone) {
+      const existingFace = headBone.getObjectByName('agent-face-group');
+      if (existingFace) headBone.remove(existingFace);
 
-    const existingFace = headBone.getObjectByName('agent-face-group');
-    if (existingFace) {
-      headBone.remove(existingFace);
+      faceGroup = createAgentFace({
+        codename: codename || name,
+        color,
+        accentColor
+      });
+      headBone.add(faceGroup);
     }
 
-    const faceGroup = createAgentFace({
-      codename: codename || name,
-      color,
-      accentColor
-    });
-    headBone.add(faceGroup);
+    // 2. Trang phục công sở (Cổ sơ mi, ve áo Vest, cà vạt, thẻ ID, thắt lưng) gắn vào xương 'torso'
+    const torsoBone = clone.getObjectByName('torso');
+    let attireGroup: THREE.Group | null = null;
+    if (torsoBone) {
+      const existingAttire = torsoBone.getObjectByName('agent-torso-attire');
+      if (existingAttire) torsoBone.remove(existingAttire);
+
+      attireGroup = createTorsoAttire({
+        codename: codename || name,
+        suitColor
+      });
+      torsoBone.add(attireGroup);
+    }
+
+    // 3. Đồng hồ thông minh Smartwatch gắn vào xương 'arm-left'
+    const armLeftBone = clone.getObjectByName('arm-left');
+    let watchGroup: THREE.Group | null = null;
+    if (armLeftBone) {
+      const existingWatch = armLeftBone.getObjectByName('agent-wrist-watch');
+      if (existingWatch) armLeftBone.remove(existingWatch);
+
+      watchGroup = createWristWatch();
+      armLeftBone.add(watchGroup);
+    }
 
     return () => {
-      headBone.remove(faceGroup);
+      if (headBone && faceGroup) headBone.remove(faceGroup);
+      if (torsoBone && attireGroup) torsoBone.remove(attireGroup);
+      if (armLeftBone && watchGroup) armLeftBone.remove(watchGroup);
     };
-  }, [clone, codename, name, color, accentColor]);
+  }, [clone, codename, name, color, accentColor, suitColor]);
 
   const { actions, names } = useAnimations(gltf.animations, group);
 
@@ -260,6 +209,7 @@ function AgentModel({
       const nextAction = actions[targetClipName];
       if (nextAction) {
         nextAction.reset().fadeIn(0.2).play();
+
         return () => {
           nextAction.fadeOut(0.2);
         };
@@ -267,80 +217,58 @@ function AgentModel({
     }
   }, [status, isSeated, actions, animationMap]);
 
-  // Đồng bộ vị trí khi props position thay đổi từ bên ngoài
-  useEffect(() => {
-    if (!targetPosition) {
-      currentPos.current.set(...position);
-      if (group.current) {
-        group.current.position.copy(currentPos.current);
-      }
-    }
-  }, [position, targetPosition]);
-
-  // Vòng lặp cập nhật chuyển động, góc quay và tư thế vái lạy trong useFrame
-  useFrame((state, delta) => {
+  // useFrame xử lý di chuyển Lerp, xoay người và bù trừ cao độ ngồi ghế chuẩn xác
+  useFrame((_, delta) => {
     if (!group.current) return;
 
-    // Xử lý góc cúi người vái lạy Phật nhịp nhàng khi đang ở trạng thái bái Phật
-    if (status === 'praying') {
-      const bowAngle = Math.max(0, Math.sin(state.clock.getElapsedTime() * 3.8) * 0.28);
-      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, bowAngle, 0.2);
-    } else {
-      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, 0, 0.2);
-    }
-
     if (targetPosition) {
-      const targetVec = new THREE.Vector3(targetPosition[0], targetPosition[1], targetPosition[2]);
-      // Tính khoảng cách trên mặt phẳng XZ
-      const dx = targetVec.x - currentPos.current.x;
-      const dz = targetVec.z - currentPos.current.z;
-      const distHorizontal = Math.sqrt(dx * dx + dz * dz);
+      const targetVec = new THREE.Vector3(...targetPosition);
+      const dist = currentPos.current.distanceTo(targetVec);
 
-      if (distHorizontal > 0.08) {
-        // Đang đi bộ: Hướng mặt theo hướng bước chân
-        const targetAngle = Math.atan2(dx, dz);
-        let diff = targetAngle - group.current.rotation.y;
-        while (diff < -Math.PI) diff += Math.PI * 2;
-        while (diff > Math.PI) diff -= Math.PI * 2;
-        group.current.rotation.y += diff * Math.min(delta * 12, 1);
+      if (dist > 0.05) {
+        // Tốc độ di chuyển bước chân tự nhiên
+        const moveSpeed = 3.2;
+        const moveStep = Math.min(dist, moveSpeed * delta);
+        const dir = targetVec.clone().sub(currentPos.current).normalize();
+        currentPos.current.add(dir.multiplyScalar(moveStep));
 
-        // Trong lúc bước đi, chân luôn tiếp đất ở sàn nhà (Y = 0)
-        const step = Math.min((delta * 3.2) / distHorizontal, 1);
-        currentPos.current.x = THREE.MathUtils.lerp(currentPos.current.x, targetVec.x, step);
-        currentPos.current.z = THREE.MathUtils.lerp(currentPos.current.z, targetVec.z, step);
-        currentPos.current.y = THREE.MathUtils.lerp(currentPos.current.y, 0, Math.min(delta * 10, 1));
-        group.current.position.copy(currentPos.current);
+        // Xoay mặt hướng theo chiều bước đi
+        const angle = Math.atan2(dir.x, dir.z);
+        group.current.rotation.y = THREE.MathUtils.lerp(
+          group.current.rotation.y,
+          angle,
+          delta * 12
+        );
+
+        // Khi đang di chuyển, độ cao chân tiếp xúc mặt sàn tại Y = 0
+        group.current.position.set(currentPos.current.x, 0, currentPos.current.z);
       } else {
-        // Đã tới đích thành công:
-        // Đặt vị trí chính xác (bao gồm độ cao ngồi trên ghế nếu có)
+        // Đã bước tới điểm đích an toàn
         currentPos.current.copy(targetVec);
-        group.current.position.copy(targetVec);
+        group.current.position.set(targetVec.x, targetVec.y, targetVec.z);
 
-        // Xoay mặt chính xác về hướng bàn làm việc/màn hình
-        if (targetRotation !== null && targetRotation !== undefined) {
-          let diff = targetRotation - group.current.rotation.y;
-          while (diff < -Math.PI) diff += Math.PI * 2;
-          while (diff > Math.PI) diff -= Math.PI * 2;
-          group.current.rotation.y += diff * Math.min(delta * 10, 1);
+        if (targetRotation !== undefined && targetRotation !== null) {
+          group.current.rotation.y = targetRotation;
         }
 
         if (onArrival) {
-          const isAtWorkstation = targetVec.x !== 0 || targetVec.z !== 0;
-          onArrival(
-            id,
-            [targetVec.x, targetVec.y, targetVec.z],
-            isAtWorkstation ? 'working' : 'idle'
-          );
+          const nextStatus = status === 'praying' ? 'working' : 'working';
+          onArrival(id, [targetVec.x, targetVec.y, targetVec.z], nextStatus);
         }
       }
     } else {
-      // Khi đứng/ngồi yên tại chỗ: Duy trì hướng xoay chuẩn xác
-      group.current.position.copy(currentPos.current);
-      if (targetRotation !== null && targetRotation !== undefined) {
-        let diff = targetRotation - group.current.rotation.y;
-        while (diff < -Math.PI) diff += Math.PI * 2;
-        while (diff > Math.PI) diff -= Math.PI * 2;
-        group.current.rotation.y += diff * Math.min(delta * 10, 1);
+      // Đang ở trạng thái cố định tại trạm làm việc
+      const [destX, destY, destZ] = position;
+      currentPos.current.set(destX, destY, destZ);
+      group.current.position.set(destX, destY, destZ);
+
+      // Nếu có góc xoay chỉ định sẵn (hướng mặt vào màn hình máy tính), giữ vững góc đó
+      if (targetRotation !== undefined && targetRotation !== null) {
+        group.current.rotation.y = THREE.MathUtils.lerp(
+          group.current.rotation.y,
+          targetRotation,
+          delta * 8
+        );
       }
     }
   });
@@ -359,44 +287,29 @@ function AgentModel({
         if (onSelect) onSelect(id);
       }}
     >
-      {/* 3D Model nhân vật */}
-      <primitive object={clone} scale={1.25} />
+      {/* Mô hình 3D nhân vật */}
+      <primitive object={clone} />
 
-      {/* Phụ kiện độc đáo theo từng Agent */}
-      <AgentAccessory type={accessory} color={color} accentColor={accentColor} />
+      {/* Vòng hào quang phát sáng dưới chân khi được chọn */}
+      {isSelected && (
+        <mesh position={[0, isSeated ? -0.4 : 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.42, 0.52, 32]} />
+          <meshBasicMaterial color={color} transparent opacity={0.85} />
+        </mesh>
+      )}
 
-      {/* Vòng hào quang sen vàng linh thiêng dưới chân khi đang bái Phật */}
+      {/* Vòng hào quang hoa sen vàng dưới chân khi đang bái Phật */}
       {status === 'praying' && (
-        <group position={[0, 0.03, 0]}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.38, 0.72, 32]} />
-            <meshBasicMaterial color="#f59e0b" transparent opacity={0.88} side={THREE.DoubleSide} />
-          </mesh>
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <circleGeometry args={[0.38, 32]} />
-            <meshBasicMaterial color="#fef08a" transparent opacity={0.35} />
-          </mesh>
+        <group position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.5, 0.65, 32]} />
+          <meshBasicMaterial color="#eab308" transparent opacity={0.9} />
         </group>
       )}
 
-      {/* Vòng hào quang phát sáng dưới chân khi được chọn (chỉ hiện khi đứng trên sàn) */}
-      {isSelected && !isSeated && (
-        <group position={[0, 0.02, 0]}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.5, 0.62, 32]} />
-            <meshBasicMaterial color={color} transparent opacity={0.9} side={THREE.DoubleSide} />
-          </mesh>
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <circleGeometry args={[0.5, 32]} />
-            <meshBasicMaterial color={color} transparent opacity={0.15} />
-          </mesh>
-        </group>
-      )}
-
-      {/* Đĩa bóng tiếp đất mềm (chỉ hiện khi đứng trên sàn) */}
+      {/* Bóng đổ chân thực mềm mại dưới sàn khi đứng trên sàn */}
       {!isSeated && (
-        <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.38, 32]} />
+        <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.3, 16]} />
           <meshBasicMaterial color="#000000" transparent opacity={0.28} />
         </mesh>
       )}
@@ -425,7 +338,7 @@ function AgentModel({
         </Html>
       )}
 
-      {/* 🏷️ Thẻ tên nhỏ gọn và tinh tế nổi trên đầu Agent (Đã tinh giản tối đa chữ) */}
+      {/* 🏷️ Thẻ tên nhỏ gọn và tinh tế nổi trên đầu Agent */}
       <Html
         position={[0, isSeated ? 1.45 : 1.7, 0]}
         center
@@ -496,6 +409,10 @@ export function Agent(props: AgentProps) {
   );
 }
 
+useGLTF.preload('/models/character-female-a.glb');
+useGLTF.preload('/models/character-male-a.glb');
+useGLTF.preload('/models/character-female-c.glb');
+useGLTF.preload('/models/character-male-c.glb');
 useGLTF.preload('/models/agent_researcher.glb');
 useGLTF.preload('/models/agent_coder.glb');
 useGLTF.preload('/models/agent_reviewer.glb');

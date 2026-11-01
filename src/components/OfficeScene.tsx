@@ -77,15 +77,15 @@ export function OfficeScene({
           rotateSpeed={0.7}
         />
 
-        {/* 3. Hệ thống ánh sáng nghệ thuật ấm áp & tương phản (Artistic Cinematic Lighting) */}
-        {/* Ánh sáng môi trường dịu ấm */}
-        <ambientLight intensity={0.95} color="#fed7aa" />
+        {/* 3. Hệ thống ánh sáng kiến trúc cao cấp & tương phản (Artistic Executive Cinematic Lighting) */}
+        {/* Ánh sáng môi trường dịu sáng tự nhiên */}
+        <ambientLight intensity={1.1} color="#f8fafc" />
 
-        {/* Đèn chính chiếu xiên góc màu nắng ấm áp (Warm Golden Sunlight) tạo bóng đổ mềm */}
+        {/* Đèn chính chiếu xiên góc màu nắng hoàng hôn ấm áp tạo bóng đổ mềm sắc nét */}
         <directionalLight
-          position={[12, 18, 10]}
-          intensity={1.8}
-          color="#ffedd5"
+          position={[14, 18, 12]}
+          intensity={1.9}
+          color="#fffbeb"
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
@@ -98,10 +98,10 @@ export function OfficeScene({
           shadow-bias={-0.0001}
         />
 
-        {/* Đèn phụ hắt ánh xanh Cyberpunk nhẹ nhàng tạo viền sáng nghệ thuật */}
+        {/* Đèn phụ hắt ánh xanh Cyberpunk Hologram tạo viền sáng công nghệ cao */}
         <directionalLight
-          position={[-10, 8, -10]}
-          intensity={0.65}
+          position={[-12, 10, -12]}
+          intensity={0.8}
           color="#38bdf8"
         />
 

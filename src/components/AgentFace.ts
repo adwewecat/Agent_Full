@@ -1,9 +1,13 @@
 /**
  * @file AgentFace.ts
- * @description Hệ thống tạo gương mặt Chibi 3D sống động và đáng yêu cho từng AI Agent.
- * Bao gồm: Mắt to tròn long lanh phong cách Anime (có đồng tử & đốm sáng phản quang),
- * Lông mày biểu cảm, Mũi nhỏ xinh, Nụ cười rạng rỡ, Đôi má hồng ửng đào (Kawaii Blush)
- * và Mái tóc 3D đặc trưng theo cá tính từng nhân vật.
+ * @description Hệ thống tạo diện mạo khuôn mặt người thật tinh tế và chuyên nghiệp (Realistic Executive Face)
+ * cho từng AI Agent theo phong cách tham chiếu lãnh đạo & chuyên gia công nghệ:
+ * - Đôi mắt hạnh nhân tự nhiên có chiều sâu, tròng mắt màu (Iris), con ngươi đen và ánh sáng phản quang giác mạc.
+ * - Lông mày tạo dáng sắc nét theo cấu trúc giải phẫu.
+ * - Mũi 3D có sống mũi và đầu mũi rõ nét.
+ * - Đôi môi tạo hình tự nhiên với sắc thái ấm áp.
+ * - Kiểu tóc doanh nhân/chuyên gia công nghệ hiện đại.
+ * - Mắt kính gọng kim loại thanh lịch cho các chuyên gia phân tích và kiểm toán.
  */
 
 import * as THREE from 'three';
@@ -15,166 +19,226 @@ export interface AgentFaceConfig {
 }
 
 /**
- * Xây dựng nhóm hình học 3D biểu cảm khuôn mặt để gắn trực tiếp vào xương 'head' của nhân vật
+ * Xây dựng nhóm hình học 3D biểu cảm khuôn mặt chân thực để gắn trực tiếp vào xương 'head' của nhân vật
  */
 export function createAgentFace({ codename }: AgentFaceConfig): THREE.Group {
   const faceGroup = new THREE.Group();
   faceGroup.name = 'agent-face-group';
 
-  // 1. Tùy biến màu mắt và màu tóc theo nhân vật
-  let eyeColor = 0x0284c7; // Nova: Xanh Cyan
-  let hairColor = 0xa855f7; // Nova: Tím pastel
-  let eyebrowColor = 0x1e293b;
+  // 1. Phối màu mắt, tóc và sắc thái nhân vật theo phong cách công sở chuyên nghiệp
+  let eyeColor = 0x0284c7; // Nova: Xanh lam Sapphire thông tuệ
+  let hairColor = 0x1e1b4b; // Nova: Đen ánh xanh huyền bí
+  let eyebrowColor = 0x0f172a;
+  let lipColor = 0xc2410c; // Màu môi tự nhiên
+  let hasGlasses = false;
 
-  if (codename === 'Axel') {
-    eyeColor = 0xea580c; // Axel: Hổ phách rực lửa
-    hairColor = 0x451a03; // Nâu socola
-    eyebrowColor = 0x271202;
+  if (codename === 'Nova') {
+    eyeColor = 0x0284c7;
+    hairColor = 0x1e293b;
+    eyebrowColor = 0x0f172a;
+    lipColor = 0xbe123c;
+    hasGlasses = true; // Kính gọng titan trí tuệ
+  } else if (codename === 'Axel') {
+    eyeColor = 0x78350f; // Nâu hổ phách quyết đoán
+    hairColor = 0x1c1917; // Tóc đen tự nhiên
+    eyebrowColor = 0x0c0a09;
+    lipColor = 0x9a3412;
+    hasGlasses = false;
   } else if (codename === 'Vesper') {
-    eyeColor = 0x9333ea; // Vesper: Tím ruby quyến rũ
-    hairColor = 0xec4899; // Hồng ngọt ngào
-    eyebrowColor = 0x831843;
+    eyeColor = 0x4c1d95; // Tím thạch anh sắc sảo
+    hairColor = 0x451a03; // Nâu hạt dẻ ấm áp
+    eyebrowColor = 0x271202;
+    lipColor = 0x9f1239;
+    hasGlasses = true; // Kính gọng mắt mèo thanh lịch
   } else if (codename === 'Kip') {
-    eyeColor = 0x10b981; // Kip: Xanh ngọc lục bảo
-    hairColor = 0x78350f; // Nâu hạt dẻ
-    eyebrowColor = 0x451a03;
+    eyeColor = 0x047857; // Xanh lục bảo điềm tĩnh
+    hairColor = 0x292524; // Nâu đen than chì
+    eyebrowColor = 0x1c1917;
+    lipColor = 0xa16207;
+    hasGlasses = false;
   }
 
-  // Material dùng chung
-  const scleraMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const irisMat = new THREE.MeshBasicMaterial({ color: eyeColor });
-  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+  // Material dùng chung chuẩn PBR chân thực
+  const scleraMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
+  const irisMat = new THREE.MeshStandardMaterial({ color: eyeColor, roughness: 0.1 });
+  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
   const sparkleMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const eyebrowMat = new THREE.MeshBasicMaterial({ color: eyebrowColor });
-  const blushMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.65 });
-  const noseMat = new THREE.MeshStandardMaterial({ color: 0xfb923c, roughness: 0.5 });
-  const mouthMat = new THREE.MeshBasicMaterial({ color: 0xbe123c });
-  const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.5 });
+  const eyelidMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.6 });
+  const eyebrowMat = new THREE.MeshStandardMaterial({ color: eyebrowColor, roughness: 0.8 });
+  const noseMat = new THREE.MeshStandardMaterial({ color: 0xfb923c, roughness: 0.6 });
+  const lipMat = new THREE.MeshStandardMaterial({ color: lipColor, roughness: 0.4 });
+  const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.4, metalness: 0.05 });
 
-  // 2. TẠO ĐÔI MẮT ANIME TO TRÒN LONG LANH (Left & Right Eyes)
-  [-0.066, 0.066].forEach((eyeX, idx) => {
+  // 2. 👁️ ĐÔI MẮT HẠNH NHÂN TỰ NHIÊN CHÂN THỰC (Refined Human Eyes)
+  [-0.058, 0.058].forEach((eyeX, idx) => {
     const isLeft = idx === 0;
 
-    // Lòng trắng mắt (Sclera)
-    const sclera = new THREE.Mesh(new THREE.BoxGeometry(0.046, 0.056, 0.006), scleraMat);
-    sclera.position.set(eyeX, 0.185, 0.171);
+    // Lòng trắng mắt (Sclera) hình elip tinh tế
+    const sclera = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.024, 0.008), scleraMat);
+    sclera.position.set(eyeX, 0.182, 0.172);
     faceGroup.add(sclera);
 
-    // Tròng mắt có màu (Iris)
-    const iris = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.008, 16), irisMat);
+    // Tròng mắt tròn có màu (Iris)
+    const iris = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.009, 16), irisMat);
     iris.rotation.x = Math.PI / 2;
     iris.position.set(eyeX, 0.182, 0.174);
     faceGroup.add(iris);
 
-    // Con ngươi đen (Pupil)
-    const pupil = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.009, 12), pupilMat);
+    // Con ngươi trung tâm (Pupil)
+    const pupil = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.01, 12), pupilMat);
     pupil.rotation.x = Math.PI / 2;
     pupil.position.set(eyeX, 0.182, 0.175);
     faceGroup.add(pupil);
 
-    // Đốm sáng phản quang lớn (Main Sparkle)
-    const sparkleMain = new THREE.Mesh(new THREE.SphereGeometry(0.0065, 8, 8), sparkleMat);
-    sparkleMain.position.set(eyeX + (isLeft ? -0.007 : -0.005), 0.195, 0.178);
-    faceGroup.add(sparkleMain);
+    // Điểm sáng phản quang giác mạc (Corneal Specular Glint)
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.0035, 6, 6), sparkleMat);
+    glint.position.set(eyeX + (isLeft ? -0.004 : -0.003), 0.187, 0.177);
+    faceGroup.add(glint);
 
-    // Đốm sáng phản quang nhỏ (Sub Sparkle)
-    const sparkleSub = new THREE.Mesh(new THREE.SphereGeometry(0.0035, 6, 6), sparkleMat);
-    sparkleSub.position.set(eyeX + (isLeft ? 0.006 : 0.008), 0.173, 0.178);
-    faceGroup.add(sparkleSub);
+    // Đường viền mi mắt trên (Upper Eyelid Crease)
+    const eyelid = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.004, 0.009), eyelidMat);
+    eyelid.position.set(eyeX, 0.196, 0.174);
+    eyelid.rotation.z = isLeft ? 0.05 : -0.05;
+    faceGroup.add(eyelid);
   });
 
-  // 3. LÔNG MÀY BIỂU CẢM (Eyebrows)
-  const leftBrow = new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.008, 0.006), eyebrowMat);
-  leftBrow.position.set(-0.066, 0.226, 0.173);
-  leftBrow.rotation.z = 0.08;
-  faceGroup.add(leftBrow);
-
-  const rightBrow = new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.008, 0.006), eyebrowMat);
-  rightBrow.position.set(0.066, 0.226, 0.173);
-  rightBrow.rotation.z = -0.08;
-  faceGroup.add(rightBrow);
-
-  // 4. CHIẾC MŨI NHỎ XINH (Cute Button Nose)
-  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.011, 8, 8), noseMat);
-  nose.position.set(0, 0.142, 0.176);
-  faceGroup.add(nose);
-
-  // 5. ĐÔI MÁ HỒNG ĐÀO ĐÁNG YÊU (Kawaii Blush)
-  [-0.108, 0.108].forEach((cheekX) => {
-    const cheek = new THREE.Mesh(new THREE.CircleGeometry(0.024, 16), blushMat);
-    cheek.position.set(cheekX, 0.134, 0.172);
-    faceGroup.add(cheek);
+  // 3. LÔNG MÀY ĐỊNH HÌNH TỰ NHIÊN (Defined Eyebrows)
+  [-0.058, 0.058].forEach((browX, idx) => {
+    const isLeft = idx === 0;
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.046, 0.006, 0.008), eyebrowMat);
+    brow.position.set(browX, 0.218, 0.174);
+    brow.rotation.z = isLeft ? 0.08 : -0.08;
+    faceGroup.add(brow);
   });
 
-  // 6. NỤ CƯỜI RẠNG RỠ (Happy Smile)
-  const smile = new THREE.Mesh(
-    new THREE.TorusGeometry(0.026, 0.0055, 6, 16, Math.PI),
-    mouthMat
-  );
-  smile.rotation.z = Math.PI; // Lật ngược để tạo đường cong mỉm cười
-  smile.position.set(0, 0.092, 0.174);
-  faceGroup.add(smile);
+  // 4. 👃 SỐNG MŨI VÀ ĐẦU MŨI 3D (Sculpted 3D Nose)
+  // Sống mũi dọc
+  const noseBridge = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.045, 0.012), noseMat);
+  noseBridge.position.set(0, 0.165, 0.175);
+  faceGroup.add(noseBridge);
 
-  // 7. MÁI TÓC 3D CÁ TÍNH CHO TỪNG AGENT (Character 3D Hairstyle)
+  // Đầu mũi tròn nhẹ
+  const noseTip = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 10), noseMat);
+  noseTip.position.set(0, 0.14, 0.18);
+  faceGroup.add(noseTip);
+
+  // 5. 👄 ĐÔI MÔI TỰ NHIÊN (Sculpted Human Lips)
+  // Môi trên
+  const upperLip = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.007, 0.008), lipMat);
+  upperLip.position.set(0, 0.104, 0.174);
+  faceGroup.add(upperLip);
+
+  // Môi dưới đầy đặn nhẹ
+  const lowerLip = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.008, 0.008), lipMat);
+  lowerLip.position.set(0, 0.094, 0.173);
+  faceGroup.add(lowerLip);
+
+  // 6. 👓 MẮT KÍNH DOANH NHÂN / CHUYÊN GIA (Executive Wireframe Glasses)
+  if (hasGlasses) {
+    const glassesGroup = new THREE.Group();
+    const frameMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      metalness: 0.9,
+      roughness: 0.2
+    });
+    const glassLensMat = new THREE.MeshPhysicalMaterial({
+      color: 0xe2e8f0,
+      transmission: 0.9,
+      opacity: 0.4,
+      transparent: true,
+      roughness: 0.1
+    });
+
+    [-0.058, 0.058].forEach((gx) => {
+      // Gọng kính mạ kim loại titan
+      const frame = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.003, 8, 20), frameMat);
+      frame.position.set(gx, 0.182, 0.182);
+      glassesGroup.add(frame);
+
+      // Tròng kính trong suốt
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.022, 16), glassLensMat);
+      lens.position.set(gx, 0.182, 0.183);
+      glassesGroup.add(lens);
+    });
+
+    // Cầu nối kính giữa 2 mắt
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.003, 0.003), frameMat);
+    bridge.position.set(0, 0.184, 0.183);
+    glassesGroup.add(bridge);
+
+    faceGroup.add(glassesGroup);
+  }
+
+  // 7. 💇 MÁI TÓC 3D CỦA CHUYÊN GIA / DOANH NHÂN (Executive Hairstyle)
   if (codename === 'Nova') {
-    // Nova: Tóc mái uốn lượn tím pastel và lọn tóc 2 bên
-    const bangMid = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.09, 4), hairMat);
-    bangMid.position.set(-0.02, 0.27, 0.173);
-    bangMid.rotation.set(0.1, 0, -0.2);
-    faceGroup.add(bangMid);
+    // Nova: Tóc ngắn cá tính chải ngôi lệch sang trọng
+    const hairTop = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.12, 0.32), hairMat);
+    hairTop.position.set(0, 0.32, 0.02);
+    faceGroup.add(hairTop);
 
-    const bangRight = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.08, 4), hairMat);
-    bangRight.position.set(0.04, 0.275, 0.173);
-    bangRight.rotation.set(0.1, 0, 0.25);
-    faceGroup.add(bangRight);
+    // Mái tóc vuốt nhẹ sang bên trái
+    const sideSwoop = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.08, 0.14), hairMat);
+    sideSwoop.position.set(-0.06, 0.26, 0.165);
+    sideSwoop.rotation.set(0.1, 0, -0.2);
+    faceGroup.add(sideSwoop);
 
-    // Tóc 2 bên thái dương
-    [-0.18, 0.18].forEach((x, i) => {
-      const sideHair = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.14), hairMat);
-      sideHair.position.set(x, 0.23, 0.04);
-      sideHair.rotation.z = i === 0 ? 0.1 : -0.1;
-      faceGroup.add(sideHair);
+    // 2 Bên mai tóc ôm gọn gàng
+    [-0.17, 0.17].forEach((x) => {
+      const side = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.16, 0.18), hairMat);
+      side.position.set(x, 0.22, 0.04);
+      faceGroup.add(side);
     });
   } else if (codename === 'Axel') {
-    // Axel: Mái tóc vuốt dựng spiky mạnh mẽ
-    [-0.08, 0, 0.08].forEach((x, i) => {
-      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.12, 4), hairMat);
-      spike.position.set(x, 0.35, 0.05);
-      spike.rotation.set(-0.15, 0, (i - 1) * 0.25);
-      faceGroup.add(spike);
-    });
+    // Axel: Tóc nam công sở hiện đại vuốt pomade gọn gàng
+    const topHair = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.3), hairMat);
+    topHair.position.set(0, 0.33, 0.02);
+    faceGroup.add(topHair);
 
-    // Mái tóc rủ nhẹ trước trán
-    const frontSpike = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.08, 4), hairMat);
-    frontSpike.position.set(-0.03, 0.28, 0.174);
-    frontSpike.rotation.set(0.1, 0, -0.3);
-    faceGroup.add(frontSpike);
+    // Mái tóc chải bồng nhẹ phía trước
+    const frontHair = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.1), hairMat);
+    frontHair.position.set(0, 0.28, 0.16);
+    frontHair.rotation.x = 0.2;
+    faceGroup.add(frontHair);
+
+    // Râu quai nón tỉa gọn gàng tăng vẻ nam tính chững chạc
+    const beard = new THREE.Mesh(
+      new THREE.TorusGeometry(0.14, 0.016, 6, 16, Math.PI),
+      hairMat
+    );
+    beard.rotation.z = Math.PI;
+    beard.position.set(0, 0.07, 0.155);
+    faceGroup.add(beard);
   } else if (codename === 'Vesper') {
-    // Vesper: Mái tóc hồng dịu dàng với lọn tóc 2 bên
-    const bangCenter = new THREE.Mesh(new THREE.ConeGeometry(0.038, 0.08, 4), hairMat);
-    bangCenter.position.set(0, 0.27, 0.174);
-    bangCenter.rotation.set(0.1, 0, 0.1);
-    faceGroup.add(bangCenter);
+    // Vesper: Búi tóc doanh nhân nữ sang trọng (Chic Executive French Bun)
+    const topHair = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.3), hairMat);
+    topHair.position.set(0, 0.32, 0.02);
+    faceGroup.add(topHair);
 
-    // 2 Bím tóc phồng nữ tính ôm 2 bên tai
-    [-0.19, 0.19].forEach((x) => {
-      const bun = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), hairMat);
-      bun.position.set(x, 0.22, 0.02);
-      faceGroup.add(bun);
+    // Búi tóc cao phía sau đầu
+    const bun = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), hairMat);
+    bun.position.set(0, 0.26, -0.16);
+    faceGroup.add(bun);
+
+    // Đôi hoa tai ngọc trai thanh lịch (Pearl Stud Earrings)
+    [-0.18, 0.18].forEach((x) => {
+      const pearl = new THREE.Mesh(
+        new THREE.SphereGeometry(0.014, 12, 12),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.3 })
+      );
+      pearl.position.set(x, 0.14, 0.04);
+      faceGroup.add(pearl);
     });
   } else if (codename === 'Kip') {
-    // Kip: Lọn tóc nâu hạt dẻ lấp ló dưới nón lưỡi trai
-    const tuft1 = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.065, 4), hairMat);
-    tuft1.position.set(-0.04, 0.26, 0.174);
-    tuft1.rotation.set(0.1, 0, -0.2);
-    faceGroup.add(tuft1);
+    // Kip: Tóc nam Undercut ngắn năng động hiện đại
+    const cropHair = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.11, 0.3), hairMat);
+    cropHair.position.set(0, 0.31, 0.02);
+    faceGroup.add(cropHair);
 
-    const tuft2 = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.065, 4), hairMat);
-    tuft2.position.set(0.04, 0.26, 0.174);
-    tuft2.rotation.set(0.1, 0, 0.2);
-    faceGroup.add(tuft2);
+    // Tóc mái ngắn tỉa layer
+    const bang = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.06), hairMat);
+    bang.position.set(0, 0.26, 0.165);
+    faceGroup.add(bang);
   }
 
   return faceGroup;
 }
-

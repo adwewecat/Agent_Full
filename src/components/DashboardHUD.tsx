@@ -58,8 +58,8 @@ export function DashboardHUD({
             <Cpu size={20} color="#38bdf8" />
           </div>
           <div>
-            <h1 className="hud-title">Agent_Full • Cozy Pixel & 3D Command Center</h1>
-            <p className="hud-subtitle">Góc nhìn God-View Isometric • Giám sát & Điều phối AI Agents</p>
+            <h1 className="hud-title">Agent_Full • Executive AI Command Center</h1>
+            <p className="hud-subtitle">Góc nhìn God-View Isometric • Giám sát & Điều phối Đội ngũ AI</p>
           </div>
         </div>
 
