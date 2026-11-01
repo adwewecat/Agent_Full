@@ -56,35 +56,35 @@ export function OfficeScene({
           toneMappingExposure: 1.15
         }}
       >
-        {/* 1. Camera góc nhìn Isometric / God-View (nghiêng ~50 độ từ trên cao nhìn xuống) */}
+        {/* 1. Camera góc nhìn từ tầng lửng Mezzanine nhìn xuống phòng hội nghị (High Executive Balcony View) */}
         <PerspectiveCamera
           makeDefault
-          position={[11.5, 13.5, 11.5]}
-          fov={36}
+          position={[0, 14.2, 9.6]}
+          fov={38}
           near={0.1}
           far={100}
         />
 
         {/* 2. OrbitControls điều hướng với giới hạn góc xoay để giữ vững góc nhìn văn phòng */}
         <OrbitControls
-          target={[0, 0, 0]}
-          minPolarAngle={Math.PI / 6}
-          maxPolarAngle={Math.PI / 2.15}
+          target={[0, 0.8, -0.6]}
+          minPolarAngle={Math.PI / 8}
+          maxPolarAngle={Math.PI / 2.2}
           minDistance={6}
-          maxDistance={26}
+          maxDistance={28}
           enableDamping
           dampingFactor={0.06}
           rotateSpeed={0.7}
         />
 
-        {/* 3. Hệ thống ánh sáng kiến trúc cao cấp & tương phản (Artistic Executive Cinematic Lighting) */}
-        {/* Ánh sáng môi trường dịu sáng tự nhiên */}
-        <ambientLight intensity={1.1} color="#f8fafc" />
+        {/* 3. Hệ thống ánh sáng tự nhiên ban ngày ngập tràn (Bright Natural Daylight Lighting) */}
+        {/* Ánh sáng môi trường dịu sáng ngập tràn khắp phòng */}
+        <ambientLight intensity={1.3} color="#ffffff" />
 
-        {/* Đèn chính chiếu xiên góc màu nắng hoàng hôn ấm áp tạo bóng đổ mềm sắc nét */}
+        {/* Ánh nắng tự nhiên chiếu xiên từ cụm cửa sổ kính bên trái (Left Windows Daylight) */}
         <directionalLight
-          position={[14, 18, 12]}
-          intensity={1.9}
+          position={[-12, 16, 4]}
+          intensity={1.8}
           color="#fffbeb"
           castShadow
           shadow-mapSize-width={2048}
@@ -98,11 +98,11 @@ export function OfficeScene({
           shadow-bias={-0.0001}
         />
 
-        {/* Đèn phụ hắt ánh xanh Cyberpunk Hologram tạo viền sáng công nghệ cao */}
+        {/* Đèn phụ hắt từ phía đối diện tạo cân bằng tương phản */}
         <directionalLight
-          position={[-12, 10, -12]}
-          intensity={0.8}
-          color="#38bdf8"
+          position={[10, 12, -4]}
+          intensity={0.65}
+          color="#f8fafc"
         />
 
         {/* 4. Sàn nhà tương tác raycaster Click-to-Move */}
@@ -126,9 +126,9 @@ export function OfficeScene({
         {/* 6. Vòng chỉ thị điểm đích khi click (Target Marker) */}
         <TargetMarker position={clickTarget} />
 
-        {/* 6.5. Bàn thờ & Kim Thân Tượng Phật trang nghiêm (Buddha Shrine) */}
+        {/* 6.5. Bàn thờ & Kim Thân Tượng Phật trang nghiêm (Buddha Shrine đặt góc tường hậu bên trái) */}
         <BuddhaShrine
-          position={[-0.5, 0, -5.4]}
+          position={[-2.4, 0, -4.8]}
           rotation={0}
           onPray={onPray}
           isPrayingAny={isPrayingAny}

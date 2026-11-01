@@ -13,76 +13,76 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
   {
     id: 'station_buddha',
     name: 'Đài Sen Bái Phật',
-    position: [-0.5, 0, -5.4],
+    position: [-2.4, 0, -4.8],
     rotation: 0,
     type: 'shrine',
-    seatOffset: [0, 0, 1.2], // Đứng trang nghiêm trên mặt sàn trước bàn thờ
+    seatOffset: [0, 0, 1.1], // Đứng trang nghiêm trên mặt sàn trước bàn thờ
     seatRotationOffset: Math.PI, // Quay mặt 180 độ hướng về phía tượng Phật (-Z)
     isSeated: false,
     occupiedBy: null
   },
   {
-    id: 'station_research',
-    name: 'Research Pod Alpha',
-    position: [-4.2, 0, -2.5],
-    rotation: Math.PI / 4,
-    type: 'research',
-    seatOffset: [0, 0.48, 0.52], // Ngồi trên ghế công thái học đằng sau bàn
-    seatRotationOffset: Math.PI, // Quay mặt về phía trước hướng vào bàn làm việc
-    isSeated: true,
-    occupiedBy: 'agent_1'
-  },
-  {
-    id: 'station_coding',
-    name: 'Dev Terminal Axel',
-    position: [4.2, 0, -2.5],
-    rotation: -Math.PI / 4,
+    id: 'station_director',
+    name: 'Bàn Giám Đốc Axel',
+    position: [0, 0, -3.4],
+    rotation: 0,
     type: 'coding',
-    seatOffset: [0, 0.48, 0.52],
-    seatRotationOffset: Math.PI,
+    seatOffset: [0, 0.48, -0.75], // Ngồi trên ghế Giám đốc phía sau bàn
+    seatRotationOffset: 0, // Quay mặt nhìn xuống bao quát phòng (+Z)
     isSeated: true,
     occupiedBy: 'agent_2'
   },
   {
+    id: 'station_research',
+    name: 'Bàn Họp - Ghế Nova',
+    position: [-1.15, 0, 0.8],
+    rotation: Math.PI / 2,
+    type: 'research',
+    seatOffset: [0, 0.48, 0], // Ngồi trên ghế hội nghị bên trái nhìn vào bàn họp
+    seatRotationOffset: 0,
+    isSeated: true,
+    occupiedBy: 'agent_1'
+  },
+  {
     id: 'station_qa',
-    name: 'QA & Review Bench',
-    position: [4.2, 0, 2.8],
-    rotation: -Math.PI * 0.75,
+    name: 'Bàn Họp - Ghế Vesper',
+    position: [-1.15, 0, 1.8],
+    rotation: Math.PI / 2,
     type: 'coding',
-    seatOffset: [0, 0.48, 0.52],
-    seatRotationOffset: Math.PI,
+    seatOffset: [0, 0.48, 0],
+    seatRotationOffset: 0,
     isSeated: true,
     occupiedBy: 'agent_3'
   },
   {
     id: 'station_server',
-    name: 'Neural Server Core',
-    position: [-5.6, 0, 1.2],
-    rotation: Math.PI / 2,
+    name: 'Bàn Họp - Ghế Kip',
+    position: [1.15, 0, 0.8],
+    rotation: -Math.PI / 2,
     type: 'server',
-    seatOffset: [0, 0, 0.75], // Đứng nghiêm chỉnh trên sàn phía trước màn hình tủ server
-    seatRotationOffset: Math.PI,
-    isSeated: false,
+    seatOffset: [0, 0.48, 0], // Ngồi trên ghế hội nghị bên phải nhìn vào bàn họp
+    seatRotationOffset: 0,
+    isSeated: true,
     occupiedBy: 'agent_4'
   },
   {
-    id: 'station_arcade',
-    name: 'Retro Arcade Game',
-    position: [6.2, 0, 0],
-    rotation: -Math.PI / 2,
-    type: 'arcade',
-    seatOffset: [0, 0, 0.65], // Đứng phía trước máy chơi game arcade cầm joystick
-    seatRotationOffset: Math.PI,
-    isSeated: false,
+    id: 'station_lounge_left',
+    name: 'Sofa Tiếp Khách VIP Trái',
+    position: [-4.6, 0, 0.6],
+    rotation: Math.PI / 2,
+    type: 'lounge',
+    seatOffset: [0, 0.42, 0], // Ngồi trên đệm Sofa kem Taupe
+    seatRotationOffset: 0,
+    isSeated: true,
     occupiedBy: null
   },
   {
-    id: 'station_lounge',
-    name: 'Coffee & Cat Lounge',
-    position: [-1.2, 0, 3.8],
-    rotation: Math.PI,
+    id: 'station_lounge_right',
+    name: 'Sofa Tiếp Khách VIP Phải',
+    position: [4.6, 0, 0.6],
+    rotation: -Math.PI / 2,
     type: 'lounge',
-    seatOffset: [0.3, 0.42, 0.05], // Ngồi êm ái trên đệm Sofa
+    seatOffset: [0, 0.42, 0],
     seatRotationOffset: 0,
     isSeated: true,
     occupiedBy: null
@@ -90,8 +90,8 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
 ];
 
 // Tính toán tọa độ ban đầu chuẩn xác cho từng Agent dựa trên trạm làm việc của họ
-const initialNova = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[1]);
-const initialAxel = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[2]);
+const initialAxel = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[1]);
+const initialNova = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[2]);
 const initialVesper = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[3]);
 const initialKip = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[4]);
 
@@ -128,7 +128,7 @@ export const INITIAL_AGENTS: AgentData[] = [
     targetRotation: initialAxel.worldRotation,
     isSeated: initialAxel.isSeated,
     status: 'working',
-    currentStationId: 'station_coding',
+    currentStationId: 'station_director',
     pendingStationId: null,
     blessed: false,
     currentTask: 'Biên dịch Core Engine & TDD modules...',

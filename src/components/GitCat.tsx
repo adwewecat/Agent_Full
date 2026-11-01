@@ -20,15 +20,17 @@ export function GitCat({ onPetCat }: GitCatProps) {
   const headRef = useRef<THREE.Group>(null);
   const [purring, setPurring] = useState(false);
 
-  // Vị trí tuần tra tự nhiên của GitCat quanh phòng
+  // Vị trí tuần tra tự nhiên của GitCat quanh các hành lang mở trong văn phòng
   const patrolWaypoints = [
-    new THREE.Vector3(0.5, 0, 1.8),
-    new THREE.Vector3(-1.2, 0, 0.5),
-    new THREE.Vector3(1.5, 0, -0.5),
-    new THREE.Vector3(0, 0, 2.5)
+    new THREE.Vector3(-2.8, 0, -1.8),
+    new THREE.Vector3(0, 0, -2.2),
+    new THREE.Vector3(2.8, 0, -1.8),
+    new THREE.Vector3(2.6, 0, 2.8),
+    new THREE.Vector3(0, 0, 3.8),
+    new THREE.Vector3(-2.6, 0, 2.8)
   ];
   const currentWaypoint = useRef(0);
-  const catPos = useRef(new THREE.Vector3(0.5, 0, 1.8));
+  const catPos = useRef(new THREE.Vector3(-2.8, 0, -1.8));
 
   useFrame((state, delta) => {
     if (!catGroup.current || !tailRef.current) return;
