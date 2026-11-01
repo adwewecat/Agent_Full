@@ -474,7 +474,7 @@ body, html {
   transform: translateY(-1px);
 }
 
-/* 🗨️ THOUGHT BUBBLE (Pixel-Agents Floating Speech Bubble) */
+/* 🗨️ THOUGHT BUBBLE (Hộp thoại hình chữ nhật phong cách Pixel-Agents & Comic) */
 .thought-bubble-wrapper {
   display: flex;
   flex-direction: column;
@@ -484,26 +484,35 @@ body, html {
 
 .thought-bubble {
   background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(8px);
-  border: 2px solid;
-  border-radius: 16px;
-  padding: 4px 10px;
+  backdrop-filter: blur(10px);
+  border: 1.5px solid;
+  border-radius: 8px; /* Hình chữ nhật bo góc nhẹ */
+  width: 130px; /* Chiều ngang ngắn lại */
+  min-height: 48px; /* Chiều cao cao hơn */
+  padding: 6px 8px;
   display: flex;
+  flex-direction: column; /* Icon ở trên, text xuống dòng bên dưới */
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 3px;
   color: #ffffff;
   font-family: var(--font-main);
-  white-space: nowrap;
+  white-space: normal; /* Tự động xuống dòng tự nhiên */
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .thought-icon {
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1;
 }
 
 .thought-text {
-  font-size: 11px;
+  font-size: 9.5px;
   font-weight: 700;
+  line-height: 1.35;
   letter-spacing: -0.1px;
+  word-break: break-word;
 }
 
 .thought-arrow {

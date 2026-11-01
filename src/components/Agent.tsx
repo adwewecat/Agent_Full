@@ -129,7 +129,6 @@ function AgentModel({
   id,
   name = 'AI Agent',
   codename = 'Agent',
-  role = 'Agent',
   position,
   targetPosition,
   targetRotation,
@@ -347,9 +346,9 @@ function AgentModel({
         </mesh>
       )}
 
-      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘI THOẠI (Thought Bubble) */}
+      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘP THOẠI HÌNH CHỮ NHẬT (Rectangular Speech Box) */}
       <Html
-        position={[0, isSeated ? 2.0 : 2.25, 0]}
+        position={[0, isSeated ? 2.15 : 2.45, 0]}
         center
         distanceFactor={14}
         style={{ pointerEvents: 'none' }}
@@ -359,7 +358,7 @@ function AgentModel({
             className="thought-bubble"
             style={{
               borderColor: color,
-              boxShadow: `0 4px 16px ${color}44, 0 2px 6px rgba(0,0,0,0.4)`
+              boxShadow: `0 4px 18px ${color}44, 0 2px 8px rgba(0,0,0,0.5)`
             }}
           >
             <span className="thought-icon">{thoughtIcon}</span>
@@ -369,36 +368,37 @@ function AgentModel({
         </div>
       </Html>
 
-      {/* 🏷️ Thẻ định danh & Trạng thái nổi trên đầu Agent */}
+      {/* 🏷️ Thẻ tên nhỏ gọn và tinh tế nổi trên đầu Agent (Đã tinh giản tối đa chữ) */}
       <Html
-        position={[0, isSeated ? 1.55 : 1.8, 0]}
+        position={[0, isSeated ? 1.45 : 1.7, 0]}
         center
         distanceFactor={14}
         style={{ pointerEvents: 'none' }}
       >
         <div
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
-            padding: '3px 10px',
-            borderRadius: '20px',
+            gap: '5px',
+            padding: '2px 8px',
+            borderRadius: '10px',
             backgroundColor: isSelected ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.78)',
-            border: `1.5px solid ${isSelected ? color : 'rgba(255, 255, 255, 0.16)'}`,
-            boxShadow: isSelected ? `0 0 14px ${color}88` : '0 2px 8px rgba(0,0,0,0.3)',
+            border: `1.5px solid ${isSelected ? color : 'rgba(255, 255, 255, 0.18)'}`,
+            boxShadow: isSelected ? `0 0 12px ${color}88` : '0 2px 6px rgba(0,0,0,0.3)',
             whiteSpace: 'nowrap',
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            fontSize: '11px',
+            fontSize: '10.5px',
             color: '#ffffff',
-            fontWeight: 700,
+            fontWeight: 800,
             backdropFilter: 'blur(6px)',
-            transition: 'all 0.25s ease'
+            transition: 'all 0.2s ease'
           }}
         >
+          {/* Chấm tròn trạng thái nhỏ xinh */}
           <span
             style={{
-              width: '8px',
-              height: '8px',
+              width: '6px',
+              height: '6px',
               borderRadius: '50%',
               backgroundColor:
                 status === 'working'
@@ -410,30 +410,19 @@ function AgentModel({
                   : '#64748b',
               boxShadow:
                 status === 'working'
-                  ? '0 0 10px #10b981'
+                  ? '0 0 8px #10b981'
                   : status === 'moving'
-                  ? '0 0 10px #f59e0b'
+                  ? '0 0 8px #f59e0b'
                   : status === 'praying'
-                  ? '0 0 14px #eab308'
+                  ? '0 0 10px #eab308'
                   : 'none'
             }}
           />
-          <span style={{ color }}>{codename}</span>
-          <span style={{ color: '#94a3b8', fontSize: '9.5px', fontWeight: 500 }}>({name} • {role})</span>
+          {/* Chỉ hiển thị tên ngắn gọn */}
+          <span style={{ color }}>{codename || name}</span>
           {blessed && (
-            <span
-              title="Đã được Phật phù hộ: 0% Bug, 100% Green Test!"
-              style={{
-                fontSize: '9px',
-                color: '#fef08a',
-                backgroundColor: 'rgba(245, 158, 11, 0.35)',
-                border: '1px solid #fbbf24',
-                padding: '1px 5px',
-                borderRadius: '8px',
-                fontWeight: 700
-              }}
-            >
-              🙏 0% Bug
+            <span title="Được Phật phù hộ: 0% Bug" style={{ fontSize: '9px', lineHeight: 1 }}>
+              🙏
             </span>
           )}
         </div>
