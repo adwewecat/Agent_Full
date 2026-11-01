@@ -7,6 +7,7 @@ import { useCallback } from 'react';
 import { useAgentStore } from './hooks/useAgentStore';
 import { OfficeScene } from './components/OfficeScene';
 import { DashboardHUD } from './components/DashboardHUD';
+import { getRandomGitCatReaction } from './data/dialogueBank';
 
 export function App() {
   const {
@@ -48,13 +49,14 @@ export function App() {
   );
 
   /**
-   * Tương tác với chú mèo văn phòng GitCat 🐱
+   * Tương tác với chú mèo văn phòng GitCat 🐱 (Phát sinh phản ứng ngẫu nhiên dí dỏm)
    */
   const handlePetCat = useCallback(() => {
+    const reaction = getRandomGitCatReaction();
     addDialogue(
       'GitCat',
       '#ea580c',
-      '😻 *Purr purr... Meow!* Cảm ơn bạn đã vuốt ve, chúc bạn làm việc vui vẻ!',
+      reaction,
       '🐾'
     );
   }, [addDialogue]);

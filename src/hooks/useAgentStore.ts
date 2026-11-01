@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { AgentData, AgentStatus, WorkstationData, DialogueLog, getWorkstationSeatTransform } from '../types/agent';
+import { getRandomAmbientQuote } from '../data/dialogueBank';
 
 export const INITIAL_WORKSTATIONS: WorkstationData[] = [
   {
@@ -191,24 +192,32 @@ export const INITIAL_DIALOGUES: DialogueLog[] = [
     timestamp: '09:00',
     senderName: 'Axel',
     senderColor: '#f97316',
-    message: 'Chào buổi sáng cả đội! Nhớ thắp hương bái Phật cầu code không bug trước khi deploy nhé!',
-    icon: '🙏'
+    message: 'Chào buổi sáng cả đội! Vừa thắp 3 nén hương bái Phật xin vía, hôm nay quyết tâm deploy 0 bug! 🙏',
+    icon: '☕'
   },
   {
     id: 'dlg_2',
     timestamp: '09:05',
     senderName: 'Nova',
     senderColor: '#06b6d4',
-    message: 'Đã bái Phật xong, tâm thanh tịnh, sẵn sàng crawl dữ liệu!',
-    icon: '✨'
+    message: 'Dự báo hôm nay trời 27°C mát dịu, trà sữa đầu hẻm giảm giá 40%, ai ké đơn trân châu đường đen hông? 🧋',
+    icon: '🌤️'
   },
   {
     id: 'dlg_3',
-    timestamp: '09:10',
+    timestamp: '09:12',
     senderName: 'Vesper',
     senderColor: '#ec4899',
-    message: 'Bộ kiểm tra Clean Code đã kích hoạt. Nhờ Phật độ nên 0 bug, 100% test xanh!',
+    message: 'Đang soi Clean Code, ai đặt tên biến `dung_xoa_nha_123` thì tự giác bao cả phòng trà sữa nha! 😂',
     icon: '🛡️'
+  },
+  {
+    id: 'dlg_4',
+    timestamp: '09:15',
+    senderName: 'Kip',
+    senderColor: '#10b981',
+    message: 'Server node-01 uptime 99.999% mượt như bơ. Đừng ai sờ tay vào công tắc nguồn là được! 🚀',
+    icon: '⚡'
   }
 ];
 
@@ -525,6 +534,42 @@ export function useAgentStore() {
   }, [addDialogue]);
 
   /**
+   * ⏱️ Ambient Office Chatter: Tự động phát sinh những câu chuyện phiếm, thời tiết,
+   * tin tức công nghệ hot và những khoảnh khắc vui vẻ ngẫu nhiên của các Agent.
+   */
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setAgents((prev) => {
+        // Chỉ chọn các Agent không bận bái Phật để trò chuyện
+        const candidates = prev.filter((a) => a.status !== 'praying');
+        if (candidates.length === 0) return prev;
+
+        const randomAgent = candidates[Math.floor(Math.random() * candidates.length)];
+        const quote = getRandomAmbientQuote(randomAgent.id);
+
+        addDialogue(
+          randomAgent.codename || randomAgent.name,
+          randomAgent.color,
+          quote.chatMessage,
+          quote.icon
+        );
+
+        return prev.map((a) =>
+          a.id === randomAgent.id
+            ? {
+                ...a,
+                thoughtIcon: quote.icon,
+                thoughtText: quote.thought
+              }
+            : a
+        );
+      });
+    }, 13000); // Cứ mỗi 13 giây ngẫu nhiên phát sinh 1 mẩu chuyện phiếm vui vẻ
+
+    return () => clearInterval(timer);
+  }, [addDialogue]);
+
+  /**
    * Giả lập tín hiệu cập nhật trạng thái từ backend (Push Event)
    */
   const simulateBackendEvent = useCallback(() => {
@@ -532,20 +577,13 @@ export function useAgentStore() {
       const randomIdx = Math.floor(Math.random() * prev.length);
       const targetAgent = prev[randomIdx];
       const newStatus: AgentStatus = targetAgent.status === 'idle' ? 'working' : 'idle';
-      const events = [
-        { icon: '💡', text: 'Vừa có ý tưởng tối ưu hóa thuật toán!', task: 'Refactor cấu trúc dữ liệu...' },
-        { icon: '☕', text: 'Uống ngụm cà phê thơm ngon rồi code tiếp!', task: 'Nghỉ giữa hiệp ngắn...' },
-        { icon: '🚀', text: 'Đã hoàn thành deploy nhánh main!', task: 'Kiểm tra telemetry...' },
-        { icon: '🎮', text: 'Làm ván game arcade xả stress!', task: 'Chơi game giải trí...' },
-        { icon: '✨', text: 'Nhờ Phật độ, Clean Code 100%, không còn warning nào!', task: 'Đồng bộ hóa Git repo...' }
-      ];
-      const randomEvt = events[Math.floor(Math.random() * events.length)];
+      const quote = getRandomAmbientQuote(targetAgent.id);
 
       addDialogue(
         targetAgent.codename || targetAgent.name,
         targetAgent.color,
-        randomEvt.text,
-        randomEvt.icon
+        quote.chatMessage,
+        quote.icon
       );
 
       return prev.map((a, idx) =>
@@ -553,10 +591,9 @@ export function useAgentStore() {
           ? {
               ...a,
               status: newStatus,
-              thoughtIcon: randomEvt.icon,
-              thoughtText: randomEvt.text,
-              currentTask: randomEvt.task,
-              progress: newStatus === 'working' ? 25 : 100
+              thoughtIcon: quote.icon,
+              thoughtText: quote.thought,
+              progress: newStatus === 'working' ? Math.floor(Math.random() * 50) + 20 : 100
             }
           : a
       );
