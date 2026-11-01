@@ -72,64 +72,64 @@ function TwoToneWalls() {
 
   return (
     <group>
-      {/* === TƯỜNG HẬU (Back Wall Z = -5.6) === */}
+      {/* === TƯỜNG HẬU (Back Wall lùi sâu vào Z = -6.2 để bảng báo cáo nằm sâu phía sau) === */}
       {/* Nửa dưới màu xanh dương Sky Blue */}
-      <mesh position={[0, blueHeight / 2, -5.6]} receiveShadow>
+      <mesh position={[0, blueHeight / 2, -6.2]} receiveShadow>
         <boxGeometry args={[11.8, blueHeight, 0.15]} />
         <meshStandardMaterial color="#0284c7" roughness={0.3} />
       </mesh>
       {/* Nẹp chỉ gỗ ngăn cách 2 dải màu */}
-      <mesh position={[0, blueHeight, -5.52]}>
+      <mesh position={[0, blueHeight, -6.12]}>
         <boxGeometry args={[11.8, 0.04, 0.02]} />
         <meshStandardMaterial color="#b45309" roughness={0.4} />
       </mesh>
       {/* Nửa trên màu trắng tinh khôi */}
-      <mesh position={[0, blueHeight + whiteHeight / 2, -5.6]} receiveShadow>
+      <mesh position={[0, blueHeight + whiteHeight / 2, -6.2]} receiveShadow>
         <boxGeometry args={[11.8, whiteHeight, 0.15]} />
         <meshStandardMaterial color="#ffffff" roughness={0.3} />
       </mesh>
       {/* Vạch nẹp xanh dương trên đỉnh tường */}
-      <mesh position={[0, wallHeight - 0.1, -5.52]}>
+      <mesh position={[0, wallHeight - 0.1, -6.12]}>
         <boxGeometry args={[11.8, 0.2, 0.02]} />
         <meshStandardMaterial color="#0284c7" />
       </mesh>
 
-      {/* === TƯỜNG TRÁI (Left Wall X = -5.8) === */}
-      <group position={[-5.8, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+      {/* === TƯỜNG TRÁI (Left Wall X = -5.8, nối dài về sau) === */}
+      <group position={[-5.8, 0, -0.3]} rotation={[0, Math.PI / 2, 0]}>
         <mesh position={[0, blueHeight / 2, 0]} receiveShadow>
-          <boxGeometry args={[11.4, blueHeight, 0.15]} />
+          <boxGeometry args={[12.0, blueHeight, 0.15]} />
           <meshStandardMaterial color="#0284c7" roughness={0.3} />
         </mesh>
         <mesh position={[0, blueHeight, 0.08]}>
-          <boxGeometry args={[11.4, 0.04, 0.02]} />
+          <boxGeometry args={[12.0, 0.04, 0.02]} />
           <meshStandardMaterial color="#b45309" roughness={0.4} />
         </mesh>
         <mesh position={[0, blueHeight + whiteHeight / 2, 0]} receiveShadow>
-          <boxGeometry args={[11.4, whiteHeight, 0.15]} />
+          <boxGeometry args={[12.0, whiteHeight, 0.15]} />
           <meshStandardMaterial color="#ffffff" roughness={0.3} />
         </mesh>
         <mesh position={[0, wallHeight - 0.1, 0.08]}>
-          <boxGeometry args={[11.4, 0.2, 0.02]} />
+          <boxGeometry args={[12.0, 0.2, 0.02]} />
           <meshStandardMaterial color="#0284c7" />
         </mesh>
       </group>
 
-      {/* === TƯỜNG PHẢI (Right Wall X = 5.8) === */}
-      <group position={[5.8, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+      {/* === TƯỜNG PHẢI (Right Wall X = 5.8, nối dài về sau) === */}
+      <group position={[5.8, 0, -0.3]} rotation={[0, -Math.PI / 2, 0]}>
         <mesh position={[0, blueHeight / 2, 0]} receiveShadow>
-          <boxGeometry args={[11.4, blueHeight, 0.15]} />
+          <boxGeometry args={[12.0, blueHeight, 0.15]} />
           <meshStandardMaterial color="#0284c7" roughness={0.3} />
         </mesh>
         <mesh position={[0, blueHeight, 0.08]}>
-          <boxGeometry args={[11.4, 0.04, 0.02]} />
+          <boxGeometry args={[12.0, 0.04, 0.02]} />
           <meshStandardMaterial color="#b45309" roughness={0.4} />
         </mesh>
         <mesh position={[0, blueHeight + whiteHeight / 2, 0]} receiveShadow>
-          <boxGeometry args={[11.4, whiteHeight, 0.15]} />
+          <boxGeometry args={[12.0, whiteHeight, 0.15]} />
           <meshStandardMaterial color="#ffffff" roughness={0.3} />
         </mesh>
         <mesh position={[0, wallHeight - 0.1, 0.08]}>
-          <boxGeometry args={[11.4, 0.2, 0.02]} />
+          <boxGeometry args={[12.0, 0.2, 0.02]} />
           <meshStandardMaterial color="#0284c7" />
         </mesh>
       </group>
@@ -142,12 +142,12 @@ function TwoToneWalls() {
  */
 function BackWallDecor() {
   return (
-    <group position={[0, 0, -5.5]}>
-      {/* 1. Bảng Báo Cáo Điều Hành Động (Dynamic Executive Dashboard) với biểu đồ & sóng Telemetry */}
-      <DynamicReportBoard position={[0, 2.7, 0]} />
+    <group position={[0, 0, -6.12]}>
+      {/* 1. Bảng Báo Cáo Điều Hành Động gắn lùi sâu sát tường hậu (Z = -6.12) */}
+      <DynamicReportBoard position={[0, 2.85, 0]} />
 
       {/* 2. Biểu trưng mặt trời / Huân chương vàng kim phía trên bảng (Golden Emblem) */}
-      <group position={[0, 3.8, 0.02]}>
+      <group position={[0, 3.95, 0.02]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.32, 0.32, 0.03, 32]} />
           <meshStandardMaterial color="#f59e0b" metalness={0.9} roughness={0.15} />
@@ -164,28 +164,11 @@ function BackWallDecor() {
         </mesh>
       </group>
 
-      {/* 3. Bảng nội quy / Thông báo viền xanh bên phải bảng xanh */}
-      <group position={[2.4, 2.9, 0]}>
-        <mesh>
-          <boxGeometry args={[0.75, 1.1, 0.02]} />
-          <meshStandardMaterial color="#f8fafc" />
-        </mesh>
-        <mesh position={[0, 0, 0.015]}>
-          <planeGeometry args={[0.7, 1.05]} />
-          <meshBasicMaterial color="#0284c7" />
-        </mesh>
-        {/* Các dòng chữ thông báo */}
-        <mesh position={[0, 0, 0.02]}>
-          <planeGeometry args={[0.62, 0.9]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
-      </group>
+      {/* 3. Tủ sách đứng gỗ sồi mặt kính bên trái (Left Bookcase) */}
+      <BookcaseCabinet position={[-4.2, 0, 0.35]} />
 
-      {/* 4. Tủ sách đứng gỗ sồi mặt kính bên trái (Left Bookcase) */}
-      <BookcaseCabinet position={[-4.0, 0, 0.35]} />
-
-      {/* 5. Tủ sách đứng gỗ sồi mặt kính bên phải (Right Bookcase) */}
-      <BookcaseCabinet position={[4.0, 0, 0.35]} />
+      {/* 4. Tủ sách đứng gỗ sồi mặt kính bên phải (Right Bookcase) */}
+      <BookcaseCabinet position={[4.2, 0, 0.35]} />
     </group>
   );
 }
