@@ -64,6 +64,12 @@ function AgentModel({
   const [isHovered, setIsHovered] = useState(false);
   const group = useRef<THREE.Group>(null);
   const currentPos = useRef(new THREE.Vector3(...position));
+  const hasReportedArrival = useRef(false);
+
+  // Khi có đích đến mới, reset cờ báo đã đến để chuẩn bị cho lần tới đích tiếp theo
+  useEffect(() => {
+    hasReportedArrival.current = false;
+  }, [targetPosition]);
 
   // Xác định màu vest/trang phục công sở chuẩn của từng Agent
   const suitColor = useMemo(() => {
@@ -264,7 +270,8 @@ function AgentModel({
           group.current.rotation.y = targetRotation;
         }
 
-        if (onArrival) {
+        if (onArrival && !hasReportedArrival.current) {
+          hasReportedArrival.current = true;
           onArrival(id, [targetVec.x, targetVec.y, targetVec.z]);
         }
       }

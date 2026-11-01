@@ -299,6 +299,13 @@ export function useAgentStore() {
   const [clickTarget, setClickTarget] = useState<[number, number, number] | null>(null);
   const [dialogueLogs, setDialogueLogs] = useState<DialogueLog[]>(INITIAL_DIALOGUES);
 
+  // Ref lưu trạng thái agents mới nhất để đọc đồng bộ từ timer/callback mà không cần dùng updater side-effect
+  const agentsRef = useRef<AgentData[]>(INITIAL_AGENTS);
+  agentsRef.current = agents;
+
+  // Ref chống trùng lặp tin nhắn liên tiếp trong khoảng thời gian ngắn
+  const lastDialogueRef = useRef<{ sender: string; message: string; time: number } | null>(null);
+
   // Trạng thái hiệu ứng tâm linh & đạn đạo
   const [projectiles, setProjectiles] = useState<SpiritualProjectile[]>([]);
   const [buddhaSpeech, setBuddhaSpeech] = useState<string | null>(null);
@@ -310,15 +317,30 @@ export function useAgentStore() {
   const dispatchRef = useRef<(agentId: string, stationId: string, requirePrayer?: boolean) => void>(() => {});
 
   /**
-   * Thêm log hội thoại mới vào feed và hiển thị bong bóng chat trên đầu nhân vật
+   * Thêm log hội thoại mới vào feed và hiển thị bong bóng chat trên đầu nhân vật.
+   * Tích hợp bộ lọc chống trùng lặp: loại bỏ các tin nhắn giống hệt từ cùng 1 người trong vòng 2.5 giây.
    */
   const addDialogue = useCallback((senderName: string, senderColor: string, message: string, icon: string, targetAgentId?: string) => {
+    const nowMs = Date.now();
+
+    // 🛡️ BỘ LỌC CHỐNG TRÙNG LẶP LIÊN TIẾP:
+    // Ngăn chặn hoàn toàn việc gọi lặp cùng 1 tin nhắn do React StrictMode hoặc vòng lặp frame
+    if (
+      lastDialogueRef.current &&
+      lastDialogueRef.current.sender === senderName &&
+      lastDialogueRef.current.message === message &&
+      nowMs - lastDialogueRef.current.time < 2500
+    ) {
+      return;
+    }
+    lastDialogueRef.current = { sender: senderName, message, time: nowMs };
+
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     setDialogueLogs((prev) => [
       ...prev.slice(-6),
       {
-        id: `dlg_${Date.now()}_${Math.random()}`,
+        id: `dlg_${nowMs}_${Math.random()}`,
         timestamp: timeStr,
         senderName,
         senderColor,
@@ -328,29 +350,24 @@ export function useAgentStore() {
     ]);
 
     // Tìm Agent phát biểu để gắn lời thoại trực tiếp trên đầu
-    setAgents((prev) => {
-      const speaker = prev.find((a) => {
-        if (targetAgentId) return a.id === targetAgentId;
-        return (a.codename && senderName.includes(a.codename)) || senderName.includes(a.name);
-      });
-      if (!speaker) return prev;
+    const currentAgents = agentsRef.current;
+    const speaker = currentAgents.find((a) => {
+      if (targetAgentId) return a.id === targetAgentId;
+      return (a.codename && senderName.includes(a.codename)) || senderName.includes(a.name);
+    });
 
-      // Hẹn giờ thu hồi bong bóng thoại sau 5.5s
+    if (speaker) {
+      setAgents((prev) =>
+        prev.map((a) => (a.id === speaker.id ? { ...a, speechText: message } : a))
+      );
+
+      // Hẹn giờ thu hồi bong bóng thoại sau 5.5s (lên lịch độc lập bên ngoài setState)
       setTimeout(() => {
         setAgents((curr) =>
           curr.map((a) => (a.id === speaker.id && a.speechText === message ? { ...a, speechText: null } : a))
         );
       }, 5500);
-
-      return prev.map((a) =>
-        a.id === speaker.id
-          ? {
-              ...a,
-              speechText: message
-            }
-          : a
-      );
-    });
+    }
   }, []);
 
   /**
@@ -367,16 +384,21 @@ export function useAgentStore() {
     (id: string, target: [number, number, number]) => {
       // Khi click trên sàn, đích đến luôn ở mặt sàn Y = 0
       const floorTarget: [number, number, number] = [target[0], 0, target[2]];
+      const targetAgent = agentsRef.current.find((a) => a.id === id);
+
+      if (targetAgent) {
+        addDialogue(
+          targetAgent.codename || targetAgent.name,
+          targetAgent.color,
+          `Đang bước tới sàn [${target[0].toFixed(1)}, ${target[2].toFixed(1)}]`,
+          '🏃',
+          targetAgent.id
+        );
+      }
 
       setAgents((prev) =>
         prev.map((agent) => {
           if (agent.id === id) {
-            addDialogue(
-              agent.codename || agent.name,
-              agent.color,
-              `Đang bước tới sàn [${target[0].toFixed(1)}, ${target[2].toFixed(1)}]`,
-              '🏃'
-            );
             return {
               ...agent,
               targetPosition: floorTarget,
@@ -426,7 +448,7 @@ export function useAgentStore() {
       const station = workstations.find((s) => s.id === stationId);
       if (!station) return;
 
-      const currentAgent = agents.find((a) => a.id === agentId);
+      const currentAgent = agentsRef.current.find((a) => a.id === agentId);
       if (!currentAgent) return;
 
       // Nếu mục tiêu chính là Đài Sen Bái Phật, Bàn Thờ Chúa, Sinh hoạt văn phòng, hoặc requirePrayer = false (đã bái rồi)
@@ -449,16 +471,18 @@ export function useAgentStore() {
           routineIcon = '🚻';
         }
 
+        // Gọi addDialogue ĐÚNG 1 LẦN DUY NHẤT BÊN NGOÀI setAgents
+        addDialogue(
+          currentAgent.codename || currentAgent.name,
+          currentAgent.color,
+          routineSpeech || `Đang di chuyển đến ${station.name}...`,
+          routineIcon,
+          currentAgent.id
+        );
+
         setAgents((prev) =>
           prev.map((agent) => {
             if (agent.id === agentId) {
-              addDialogue(
-                agent.codename || agent.name,
-                agent.color,
-                routineSpeech || `Đang di chuyển đến ${station.name}...`,
-                routineIcon,
-                agent.id
-              );
               return {
                 ...agent,
                 targetPosition: transform.worldPosition,
@@ -536,222 +560,194 @@ export function useAgentStore() {
    */
   const completeMovement = useCallback(
     (id: string, finalPosition: [number, number, number]) => {
-      setAgents((prev) => {
-        const targetAgent = prev.find((a) => a.id === id);
-        if (!targetAgent) return prev;
+      const targetAgent = agentsRef.current.find((a) => a.id === id);
+      if (!targetAgent || !targetAgent.targetPosition) return;
 
-        // 1. Nếu Agent vừa bước tới trước bàn thờ Phật
-        if (targetAgent.currentStationId === 'station_buddha') {
-          addDialogue(
-            targetAgent.codename || targetAgent.name,
-            targetAgent.color,
-            '🙏 Đã thành tâm cúi lạy 3 lạy trước tượng Phật: Cầu giải trừ mọi lỗi bug, deploy suôn sẻ êm đềm!',
-            '🙏'
-          );
+      const stationId = targetAgent.currentStationId;
 
-          // Nếu có trạm đang chờ đến sau khi bái Phật, tự động chuyển sang trạm đó sau 2.8s
-          const destStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
-          setTimeout(() => {
-            dispatchRef.current(id, destStationId, false);
-          }, 2800);
-
-          return prev.map((agent) =>
-            agent.id === id
-              ? {
-                  ...agent,
-                  position: [finalPosition[0], 0, finalPosition[2]],
-                  targetPosition: null,
-                  isSeated: false, // Đứng trang nghiêm trên mặt sàn, không ngồi
-                  status: 'praying',
-                  blessed: true,
-                  thoughtIcon: '🙏',
-                  thoughtText: '🙏 Nam Mô A Di Đà Phật • Cầu code không bug!',
-                  currentTask: 'Đang thành tâm chắp tay vái lạy bái Phật...'
-                }
-              : agent
-          );
-        }
-
-        // 1.5. Nếu Agent bước tới trước bàn thờ Chúa & Thánh Giá
-        if (targetAgent.currentStationId === 'station_cross') {
-          addDialogue(
-            targetAgent.codename || targetAgent.name,
-            targetAgent.color,
-            '✝️ Đã thành kính cầu nguyện trước Thánh Giá Chúa: Cầu bình an, sáng suốt, hệ thống ổn định 100%!',
-            '✝️',
-            id
-          );
-
-          // Tự động trở về trạm làm việc sau 2.8s
-          const destStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
-          setTimeout(() => {
-            dispatchRef.current(id, destStationId, false);
-          }, 2800);
-
-          return prev.map((agent) =>
-            agent.id === id
-              ? {
-                  ...agent,
-                  position: [finalPosition[0], 0, finalPosition[2]],
-                  targetPosition: null,
-                  isSeated: false,
-                  status: 'praying',
-                  blessed: true,
-                  thoughtIcon: '✝️',
-                  thoughtText: '✝️ Cầu Chúa ban phước • Bình an & Vững bền!',
-                  currentTask: 'Đang thành tâm cầu nguyện trước Thánh Giá Chúa...'
-                }
-              : agent
-          );
-        }
-
-        // 1.6. Nếu Agent bước tới quầy pha cà phê
-        if (targetAgent.currentStationId === 'station_coffee') {
-          addDialogue(
-            targetAgent.codename || targetAgent.name,
-            targetAgent.color,
-            OFFICE_ROUTINE_SCRIPTS.coffee.endSpeech,
-            '☕',
-            id
-          );
-
-          // Tự động trở về trạm làm việc sau 3.5s
-          const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
-          setTimeout(() => {
-            dispatchRef.current(id, returnStationId, false);
-          }, 3500);
-
-          return prev.map((agent) =>
-            agent.id === id
-              ? {
-                  ...agent,
-                  position: [finalPosition[0], 0, finalPosition[2]],
-                  targetPosition: null,
-                  isSeated: false,
-                  status: 'idle',
-                  thoughtIcon: '☕',
-                  thoughtText: OFFICE_ROUTINE_SCRIPTS.coffee.endThought,
-                  currentTask: 'Đang pha và thưởng thức Americano tại quầy Bar...'
-                }
-              : agent
-          );
-        }
-
-        // 1.7. Nếu Agent bước tới góc cho mèo GitCat ăn
-        if (targetAgent.currentStationId === 'station_cat') {
-          addDialogue(
-            targetAgent.codename || targetAgent.name,
-            targetAgent.color,
-            OFFICE_ROUTINE_SCRIPTS.cat.endSpeech,
-            '🐱',
-            id
-          );
-
-          const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
-          setTimeout(() => {
-            dispatchRef.current(id, returnStationId, false);
-          }, 3500);
-
-          return prev.map((agent) =>
-            agent.id === id
-              ? {
-                  ...agent,
-                  position: [finalPosition[0], 0, finalPosition[2]],
-                  targetPosition: null,
-                  isSeated: false,
-                  status: 'idle',
-                  thoughtIcon: '🐱',
-                  thoughtText: OFFICE_ROUTINE_SCRIPTS.cat.endThought,
-                  currentTask: 'Đang cho mèo GitCat ăn súp thưởng và vuốt ve...'
-                }
-              : agent
-          );
-        }
-
-        // 1.8. Nếu Agent bước tới Restroom
-        if (targetAgent.currentStationId === 'station_restroom') {
-          addDialogue(
-            targetAgent.codename || targetAgent.name,
-            targetAgent.color,
-            OFFICE_ROUTINE_SCRIPTS.restroom.endSpeech,
-            '🚻',
-            id
-          );
-
-          const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
-          setTimeout(() => {
-            dispatchRef.current(id, returnStationId, false);
-          }, 3500);
-
-          return prev.map((agent) =>
-            agent.id === id
-              ? {
-                  ...agent,
-                  position: [finalPosition[0], 0, finalPosition[2]],
-                  targetPosition: null,
-                  isSeated: false,
-                  status: 'idle',
-                  thoughtIcon: '🚻',
-                  thoughtText: OFFICE_ROUTINE_SCRIPTS.restroom.endThought,
-                  currentTask: 'Đang rửa mặt refresh tinh thần trong Restroom...'
-                }
-              : agent
-          );
-        }
-
-        // 2. Nếu Agent bước tới trạm làm việc (ghế Giám đốc, ghế hội nghị, sofa)
-        const currentStation = targetAgent.currentStationId
-          ? workstations.find((s) => s.id === targetAgent.currentStationId)
-          : null;
-
-        if (currentStation) {
-          const newIcon =
-            targetAgent.id === 'agent_1'
-              ? '🔍'
-              : targetAgent.id === 'agent_2'
-              ? '💻'
-              : targetAgent.id === 'agent_3'
-              ? '🛡️'
-              : '⚡';
-
-          const newThought = targetAgent.blessed
-            ? '✨ Được Đức Phật phù hộ: 0% Bug, 100% Green Test!'
-            : 'Đang tập trung làm việc tại trạm...';
-
-          return prev.map((agent) =>
-            agent.id === id
-              ? {
-                  ...agent,
-                  position: finalPosition,
-                  targetPosition: null,
-                  isSeated: currentStation.isSeated, // Ngồi ghế nếu trạm là ghế, đứng nếu là trạm đứng
-                  status: 'working',
-                  thoughtIcon: newIcon,
-                  thoughtText: newThought,
-                  currentTask: targetAgent.blessed
-                    ? 'Đang thực thi tác vụ (Có phước lành Phật hộ trì)...'
-                    : 'Đang thực thi tác vụ tại trạm...'
-                }
-              : agent
-          );
-        }
-
-        // 3. Nếu Agent bước tới vị trí tự do trên sàn nhà (Click trên sàn)
-        return prev.map((agent) =>
-          agent.id === id
-            ? {
-                ...agent,
-                position: [finalPosition[0], 0, finalPosition[2]], // Luôn tiếp xúc mặt sàn tại Y = 0
-                targetPosition: null,
-                isSeated: false, // Tuyệt đối không ngồi trên mặt sàn trần
-                status: 'idle', // Đứng thẳng phong thái đĩnh đạc (idle)
-                thoughtIcon: '☕',
-                thoughtText: 'Dạo quanh văn phòng ngắm cảnh...',
-                currentTask: 'Nghỉ ngơi, ngắm cảnh văn phòng'
-              }
-            : agent
+      // 1. Xử lý các side-effect (Hội thoại & Lên lịch di chuyển tiếp theo) HOÀN TOÀN NGOÀI setAgents
+      if (stationId === 'station_buddha') {
+        addDialogue(
+          targetAgent.codename || targetAgent.name,
+          targetAgent.color,
+          '🙏 Đã thành tâm cúi lạy 3 lạy trước tượng Phật: Cầu giải trừ mọi lỗi bug, deploy suôn sẻ êm đềm!',
+          '🙏',
+          id
         );
-      });
+        const destStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+        setTimeout(() => {
+          dispatchRef.current(id, destStationId, false);
+        }, 2800);
+      } else if (stationId === 'station_cross') {
+        addDialogue(
+          targetAgent.codename || targetAgent.name,
+          targetAgent.color,
+          '✝️ Đã thành kính cầu nguyện trước Thánh Giá Chúa: Cầu bình an, sáng suốt, hệ thống ổn định 100%!',
+          '✝️',
+          id
+        );
+        const destStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+        setTimeout(() => {
+          dispatchRef.current(id, destStationId, false);
+        }, 2800);
+      } else if (stationId === 'station_coffee') {
+        addDialogue(
+          targetAgent.codename || targetAgent.name,
+          targetAgent.color,
+          OFFICE_ROUTINE_SCRIPTS.coffee.endSpeech,
+          '☕',
+          id
+        );
+        const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+        setTimeout(() => {
+          dispatchRef.current(id, returnStationId, false);
+        }, 3500);
+      } else if (stationId === 'station_cat') {
+        addDialogue(
+          targetAgent.codename || targetAgent.name,
+          targetAgent.color,
+          OFFICE_ROUTINE_SCRIPTS.cat.endSpeech,
+          '🐱',
+          id
+        );
+        const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+        setTimeout(() => {
+          dispatchRef.current(id, returnStationId, false);
+        }, 3500);
+      } else if (stationId === 'station_restroom') {
+        addDialogue(
+          targetAgent.codename || targetAgent.name,
+          targetAgent.color,
+          OFFICE_ROUTINE_SCRIPTS.restroom.endSpeech,
+          '🚻',
+          id
+        );
+        const returnStationId = targetAgent.pendingStationId || HOME_STATIONS[id] || 'station_director';
+        setTimeout(() => {
+          dispatchRef.current(id, returnStationId, false);
+        }, 3500);
+      }
+
+      // 2. Cập nhật state thuần túy (Pure State Updates, không side-effect)
+      setAgents((prev) =>
+        prev.map((agent) => {
+          if (agent.id !== id) return agent;
+
+          // 1. Đài Sen Bái Phật
+          if (stationId === 'station_buddha') {
+            return {
+              ...agent,
+              position: [finalPosition[0], 0, finalPosition[2]],
+              targetPosition: null,
+              isSeated: false,
+              status: 'praying',
+              blessed: true,
+              thoughtIcon: '🙏',
+              thoughtText: '🙏 Nam Mô A Di Đà Phật • Cầu code không bug!',
+              currentTask: 'Đang thành tâm chắp tay vái lạy bái Phật...'
+            };
+          }
+
+          // 1.5. Bàn Thờ Chúa
+          if (stationId === 'station_cross') {
+            return {
+              ...agent,
+              position: [finalPosition[0], 0, finalPosition[2]],
+              targetPosition: null,
+              isSeated: false,
+              status: 'praying',
+              blessed: true,
+              thoughtIcon: '✝️',
+              thoughtText: '✝️ Cầu Chúa ban phước • Bình an & Vững bền!',
+              currentTask: 'Đang thành tâm cầu nguyện trước Thánh Giá Chúa...'
+            };
+          }
+
+          // 1.6. Quầy Cà Phê
+          if (stationId === 'station_coffee') {
+            return {
+              ...agent,
+              position: [finalPosition[0], 0, finalPosition[2]],
+              targetPosition: null,
+              isSeated: false,
+              status: 'idle',
+              thoughtIcon: '☕',
+              thoughtText: OFFICE_ROUTINE_SCRIPTS.coffee.endThought,
+              currentTask: 'Đang pha và thưởng thức Americano tại quầy Bar...'
+            };
+          }
+
+          // 1.7. Cho Mèo GitCat Ăn
+          if (stationId === 'station_cat') {
+            return {
+              ...agent,
+              position: [finalPosition[0], 0, finalPosition[2]],
+              targetPosition: null,
+              isSeated: false,
+              status: 'idle',
+              thoughtIcon: '🐱',
+              thoughtText: OFFICE_ROUTINE_SCRIPTS.cat.endThought,
+              currentTask: 'Đang cho mèo GitCat ăn súp thưởng và vuốt ve...'
+            };
+          }
+
+          // 1.8. Restroom
+          if (stationId === 'station_restroom') {
+            return {
+              ...agent,
+              position: [finalPosition[0], 0, finalPosition[2]],
+              targetPosition: null,
+              isSeated: false,
+              status: 'idle',
+              thoughtIcon: '🚻',
+              thoughtText: OFFICE_ROUTINE_SCRIPTS.restroom.endThought,
+              currentTask: 'Đang rửa mặt refresh tinh thần trong Restroom...'
+            };
+          }
+
+          // 2. Trạm làm việc chính thức (ghế Giám đốc, bàn họp, sofa)
+          const currentStation = stationId ? workstations.find((s) => s.id === stationId) : null;
+          if (currentStation) {
+            const newIcon =
+              agent.id === 'agent_1'
+                ? '🔍'
+                : agent.id === 'agent_2'
+                ? '💻'
+                : agent.id === 'agent_3'
+                ? '🛡️'
+                : '⚡';
+
+            const newThought = agent.blessed
+              ? '✨ Được Đức Phật phù hộ: 0% Bug, 100% Green Test!'
+              : 'Đang tập trung làm việc tại trạm...';
+
+            return {
+              ...agent,
+              position: finalPosition,
+              targetPosition: null,
+              isSeated: currentStation.isSeated,
+              status: 'working',
+              thoughtIcon: newIcon,
+              thoughtText: newThought,
+              currentTask: agent.blessed
+                ? 'Đang thực thi tác vụ (Có phước lành Phật hộ trì)...'
+                : 'Đang thực thi tác vụ tại trạm...'
+            };
+          }
+
+          // 3. Vị trí tự do trên sàn nhà
+          return {
+            ...agent,
+            position: [finalPosition[0], 0, finalPosition[2]],
+            targetPosition: null,
+            isSeated: false,
+            status: 'idle',
+            thoughtIcon: '☕',
+            thoughtText: 'Dạo quanh văn phòng ngắm cảnh...',
+            currentTask: 'Nghỉ ngơi, ngắm cảnh văn phòng'
+          };
+        })
+      );
       setClickTarget(null);
     },
     [addDialogue, workstations]
@@ -946,39 +942,42 @@ export function useAgentStore() {
    * 🏃 Kích hoạt phản ứng né tránh (Dodge Reaction) của Agent khi đạn đạo bay tới gần
    */
   const triggerAgentDodge = useCallback((agentId: string, threatType: 'nail' | 'bead') => {
+    const targetAgent = agentsRef.current.find((a) => a.id === agentId);
+    if (!targetAgent) return;
+
     const reaction = getRandomDodgeReaction(agentId);
 
-    setAgents((prev) => {
-      const targetAgent = prev.find((a) => a.id === agentId);
-      if (!targetAgent) return prev;
+    // 1. Gửi thoại né tránh ĐÚNG 1 LẦN bên ngoài setAgents
+    addDialogue(
+      targetAgent.codename || targetAgent.name,
+      targetAgent.color,
+      reaction,
+      threatType === 'nail' ? '🔨' : '📿',
+      targetAgent.id
+    );
 
-      addDialogue(
-        targetAgent.codename || targetAgent.name,
-        targetAgent.color,
-        reaction,
-        threatType === 'nail' ? '🔨' : '📿'
+    const oldTask = targetAgent.currentTask;
+
+    // 2. Lên lịch khôi phục trạng thái làm việc sau 2.2 giây (bên ngoài setAgents)
+    setTimeout(() => {
+      setAgents((curr) =>
+        curr.map((a) =>
+          a.id === agentId
+            ? {
+                ...a,
+                status: a.isSeated ? 'working' : 'idle',
+                thoughtIcon: '😌',
+                thoughtText: 'Phù... may mà né kịp!',
+                currentTask: oldTask
+              }
+            : a
+        )
       );
+    }, 2200);
 
-      const oldTask = targetAgent.currentTask;
-
-      // Khôi phục trạng thái làm việc bình thường sau 2.2 giây
-      setTimeout(() => {
-        setAgents((curr) =>
-          curr.map((a) =>
-            a.id === agentId
-              ? {
-                  ...a,
-                  status: a.isSeated ? 'working' : 'idle',
-                  thoughtIcon: '😌',
-                  thoughtText: 'Phù... may mà né kịp!',
-                  currentTask: oldTask
-                }
-              : a
-          )
-        );
-      }, 2200);
-
-      return prev.map((a) =>
+    // 3. Cập nhật trạng thái né tránh (Pure state update)
+    setAgents((prev) =>
+      prev.map((a) =>
         a.id === agentId
           ? {
               ...a,
@@ -988,8 +987,8 @@ export function useAgentStore() {
               currentTask: threatType === 'nail' ? 'Cúi rạp người né Đinh Thánh!' : 'Cúi đầu né Tràng Hạt!'
             }
           : a
-      );
-    });
+      )
+    );
   }, [addDialogue]);
 
   /**
@@ -1053,25 +1052,27 @@ export function useAgentStore() {
    */
   useEffect(() => {
     const timer = setInterval(() => {
-      setAgents((prev) => {
-        // Chỉ chọn các Agent đang rảnh rỗi hoặc làm việc, không bận bái Phật hay né đạn
-        const candidates = prev.filter(
-          (a) => a.status !== 'praying' && a.status !== 'dodging' && a.status !== 'moving'
-        );
-        if (candidates.length === 0) return prev;
+      const currentAgents = agentsRef.current;
+      // Chỉ chọn các Agent đang rảnh rỗi hoặc làm việc, không bận bái Phật hay né đạn
+      const candidates = currentAgents.filter(
+        (a) => a.status !== 'praying' && a.status !== 'dodging' && a.status !== 'moving'
+      );
+      if (candidates.length === 0) return;
 
-        const randomAgent = candidates[Math.floor(Math.random() * candidates.length)];
-        const quote = getSmartAmbientQuote(randomAgent.id);
+      const randomAgent = candidates[Math.floor(Math.random() * candidates.length)];
+      const quote = getSmartAmbientQuote(randomAgent.id);
 
-        addDialogue(
-          randomAgent.codename || randomAgent.name,
-          randomAgent.color,
-          quote.chatMessage,
-          quote.icon,
-          randomAgent.id
-        );
+      // Gọi addDialogue ĐÚNG 1 LẦN bên ngoài setAgents
+      addDialogue(
+        randomAgent.codename || randomAgent.name,
+        randomAgent.color,
+        quote.chatMessage,
+        quote.icon,
+        randomAgent.id
+      );
 
-        return prev.map((a) =>
+      setAgents((prev) =>
+        prev.map((a) =>
           a.id === randomAgent.id
             ? {
                 ...a,
@@ -1079,9 +1080,9 @@ export function useAgentStore() {
                 thoughtText: quote.thought
               }
             : a
-        );
-      });
-    }, 45000); // 45 giây giãn cách một câu nói nhẹ nhàng
+        )
+      );
+    }, 45000);
 
     return () => clearInterval(timer);
   }, [addDialogue]);
@@ -1094,22 +1095,18 @@ export function useAgentStore() {
    */
   useEffect(() => {
     const routineTimer = setInterval(() => {
-      setAgents((prev) => {
-        const eligibleAgents = prev.filter(
-          (a) => a.status === 'working' && a.isSeated && !a.targetPosition
-        );
-        if (eligibleAgents.length === 0) return prev;
+      const currentAgents = agentsRef.current;
+      const eligibleAgents = currentAgents.filter(
+        (a) => a.status === 'working' && a.isSeated && !a.targetPosition
+      );
+      if (eligibleAgents.length === 0) return;
 
-        const chosenAgent = eligibleAgents[Math.floor(Math.random() * eligibleAgents.length)];
-        const routineStations = ['station_coffee', 'station_cat', 'station_restroom'];
-        const chosenStation = routineStations[Math.floor(Math.random() * routineStations.length)];
+      const chosenAgent = eligibleAgents[Math.floor(Math.random() * eligibleAgents.length)];
+      const routineStations = ['station_coffee', 'station_cat', 'station_restroom'];
+      const chosenStation = routineStations[Math.floor(Math.random() * routineStations.length)];
 
-        setTimeout(() => {
-          dispatchRef.current(chosenAgent.id, chosenStation, false);
-        }, 150);
-
-        return prev;
-      });
+      // Kích hoạt điều phối trực tiếp, KHÔNG GỌI setAgents bọc ngoài
+      dispatchRef.current(chosenAgent.id, chosenStation, false);
     }, 65000);
 
     return () => clearInterval(routineTimer);
@@ -1122,19 +1119,20 @@ export function useAgentStore() {
   const simulateBackendEvent = useCallback(() => {
     WORK_COLLABORATION_DIALOGUES.forEach((item, index) => {
       setTimeout(() => {
-        setAgents((prev) => {
-          const speaker = prev.find((a) => a.id === item.speaker);
-          if (!speaker) return prev;
+        const currentAgents = agentsRef.current;
+        const speaker = currentAgents.find((a) => a.id === item.speaker);
+        if (!speaker) return;
 
-          addDialogue(
-            speaker.codename || speaker.name,
-            speaker.color,
-            item.text,
-            item.icon,
-            speaker.id
-          );
+        addDialogue(
+          speaker.codename || speaker.name,
+          speaker.color,
+          item.text,
+          item.icon,
+          speaker.id
+        );
 
-          return prev.map((a) =>
+        setAgents((prev) =>
+          prev.map((a) =>
             a.id === speaker.id
               ? {
                   ...a,
@@ -1144,8 +1142,8 @@ export function useAgentStore() {
                   progress: Math.floor(Math.random() * 40) + 35
                 }
               : a
-          );
-        });
+          )
+        );
       }, index * 2000); // Cách nhau 2s cho người dùng đọc rõ từng tin nhắn trực tiếp trên đầu
     });
   }, [addDialogue]);
