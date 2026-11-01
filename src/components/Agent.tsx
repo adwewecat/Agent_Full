@@ -12,6 +12,7 @@ import { useGLTF, useAnimations, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { AgentStatus } from '../types/agent';
+import { createAgentFace } from './AgentFace';
 
 export interface AgentProps {
   id: string;
@@ -52,9 +53,9 @@ function AgentAccessory({
   switch (type) {
     case 'cyber-visor':
       return (
-        <group position={[0, 1.08, 0.16]}>
+        <group position={[0, 1.15, 0.13]} rotation={[-0.15, 0, 0]}>
           <mesh>
-            <boxGeometry args={[0.3, 0.08, 0.08]} />
+            <boxGeometry args={[0.28, 0.06, 0.06]} />
             <meshStandardMaterial
               color={color}
               emissive={color}
@@ -63,8 +64,8 @@ function AgentAccessory({
               metalness={0.8}
             />
           </mesh>
-          <mesh position={[0, 0, 0.045]}>
-            <boxGeometry args={[0.26, 0.05, 0.02]} />
+          <mesh position={[0, 0, 0.035]}>
+            <boxGeometry args={[0.24, 0.04, 0.02]} />
             <meshBasicMaterial color="#ffffff" />
           </mesh>
         </group>
@@ -153,12 +154,38 @@ function AgentModel({
   const gltf = useGLTF(modelUrl);
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(gltf.scene);
+
+    // Xác định tone màu da tự nhiên và ấm áp theo từng Agent
+    const skinColor =
+      codename === 'Nova'
+        ? '#fed7aa' // Trắng hồng
+        : codename === 'Axel'
+        ? '#fde68a' // Năng động ấm áp
+        : codename === 'Vesper'
+        ? '#fff1f2' // Hồng phấn thanh tú
+        : '#fef08a'; // Tươi tắn
+
     clonedScene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-        if (mesh.material) {
+
+        if (mesh.name === 'head-mesh') {
+          // Tô màu da mặt ấm áp tự nhiên, xóa tan hoàn toàn vẻ trắng bệch ma-nơ-canh
+          mesh.material = new THREE.MeshStandardMaterial({
+            color: skinColor,
+            roughness: 0.5,
+            metalness: 0.05
+          });
+        } else if (mesh.name === 'body-mesh') {
+          // Tô màu trang phục rực rỡ cá tính cho từng Agent
+          mesh.material = new THREE.MeshStandardMaterial({
+            color: color,
+            roughness: 0.45,
+            metalness: 0.1
+          });
+        } else if (mesh.material) {
           const mat = (mesh.material as THREE.Material).clone() as THREE.MeshStandardMaterial;
           mat.roughness = 0.45;
           mat.metalness = 0.1;
@@ -167,7 +194,29 @@ function AgentModel({
       }
     });
     return clonedScene;
-  }, [gltf.scene]);
+  }, [gltf.scene, codename, color]);
+
+  // Gắn gương mặt Chibi 3D sống động (mắt anime, lông mày, mũi, nụ cười, má hồng, tóc) vào xương 'head'
+  useEffect(() => {
+    const headBone = clone.getObjectByName('head');
+    if (!headBone) return;
+
+    const existingFace = headBone.getObjectByName('agent-face-group');
+    if (existingFace) {
+      headBone.remove(existingFace);
+    }
+
+    const faceGroup = createAgentFace({
+      codename: codename || name,
+      color,
+      accentColor
+    });
+    headBone.add(faceGroup);
+
+    return () => {
+      headBone.remove(faceGroup);
+    };
+  }, [clone, codename, name, color, accentColor]);
 
   const { actions, names } = useAnimations(gltf.animations, group);
 
