@@ -4,7 +4,17 @@
  * Hệ thống điểm neo chỗ ngồi (Seating Anchor System) và Thú cưng văn phòng (GitCat).
  */
 
-export type AgentStatus = 'idle' | 'working' | 'moving' | 'reviewing' | 'praying';
+export type AgentStatus = 'idle' | 'working' | 'moving' | 'reviewing' | 'praying' | 'dodging';
+
+export interface SpiritualProjectile {
+  id: string;
+  type: 'nail' | 'bead'; // 'nail': Đinh Thánh của Chúa | 'bead': Tràng Hạt của Phật
+  startPosition: [number, number, number];
+  targetPosition: [number, number, number];
+  currentPosition: [number, number, number];
+  progress: number; // Tiến độ bay từ 0 -> 1
+  speed: number;
+}
 
 export interface AgentData {
   /** Định danh duy nhất của Agent */

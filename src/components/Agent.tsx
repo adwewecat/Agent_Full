@@ -184,7 +184,8 @@ function AgentModel({
       walk: findClip(['Walk', 'walk', 'sprint']),
       sit: findClip(['Sit', 'sit', 'crouch', 'idle']),
       typing: findClip(['Interact-right', 'interact-right', 'interact-left', 'Typing', 'typing', 'idle']),
-      pray: findClip(['emote-yes', 'holding-both', 'pick-up', 'idle'])
+      pray: findClip(['emote-yes', 'holding-both', 'pick-up', 'idle']),
+      dodge: findClip(['crouch', 'sit', 'fall', 'idle'])
     };
   }, [names]);
 
@@ -197,6 +198,9 @@ function AgentModel({
     } else if (status === 'praying') {
       // Khi bái Phật: phát clip gật đầu vái lạy trang nghiêm (emote-yes)
       targetClipName = animationMap.pray;
+    } else if (status === 'dodging') {
+      // Khi né đinh / tràng hạt: cúi rạp người né tránh (crouch)
+      targetClipName = animationMap.dodge;
     } else if (isSeated) {
       // Khi ngồi ghế (Ghế Giám đốc, ghế xoay hội nghị, sofa VIP)
       targetClipName = animationMap.sit;
@@ -320,8 +324,16 @@ function AgentModel({
         </mesh>
       )}
 
-      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘP THOẠI HÌNH CHỮ NHẬT (Chỉ hiển thị khi Agent được chọn, rê chuột vào, hoặc đang bái Phật để giữ không gian sạch sẽ) */}
-      {(isSelected || isHovered || status === 'praying') && (
+      {/* Vòng cảnh báo đỏ rực dưới chân khi đang né đinh / tràng hạt */}
+      {status === 'dodging' && (
+        <mesh position={[0, 0.015, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.35, 0.52, 32]} />
+          <meshBasicMaterial color="#ef4444" transparent opacity={0.85} />
+        </mesh>
+      )}
+
+      {/* 🗨️ BONG BÓNG SUY NGHĨ / HỘP THOẠI HÌNH CHỮ NHẬT (Hiển thị khi được chọn, hover, đang bái Phật, hoặc đang né đạn đạo) */}
+      {(isSelected || isHovered || status === 'praying' || status === 'dodging') && (
         <Html
           position={[0, isSeated ? 2.15 : 2.45, 0]}
           center
@@ -332,14 +344,20 @@ function AgentModel({
             <div
               className="thought-bubble"
               style={{
-                borderColor: color,
-                boxShadow: `0 4px 18px ${color}44, 0 2px 8px rgba(0,0,0,0.5)`
+                borderColor: status === 'dodging' ? '#ef4444' : color,
+                boxShadow:
+                  status === 'dodging'
+                    ? '0 4px 18px rgba(239, 68, 68, 0.6), 0 2px 8px rgba(0,0,0,0.5)'
+                    : `0 4px 18px ${color}44, 0 2px 8px rgba(0,0,0,0.5)`
               }}
             >
-              <span className="thought-icon">{thoughtIcon}</span>
+              <span className="thought-icon">{status === 'dodging' ? '⚠️' : thoughtIcon}</span>
               <span className="thought-text">{thoughtText}</span>
             </div>
-            <div className="thought-arrow" style={{ borderTopColor: color }} />
+            <div
+              className="thought-arrow"
+              style={{ borderTopColor: status === 'dodging' ? '#ef4444' : color }}
+            />
           </div>
         </Html>
       )}
@@ -377,7 +395,9 @@ function AgentModel({
               height: '6px',
               borderRadius: '50%',
               backgroundColor:
-                status === 'working'
+                status === 'dodging'
+                  ? '#ef4444'
+                  : status === 'working'
                   ? '#10b981'
                   : status === 'moving'
                   ? '#f59e0b'
@@ -385,7 +405,9 @@ function AgentModel({
                   ? '#eab308'
                   : '#64748b',
               boxShadow:
-                status === 'working'
+                status === 'dodging'
+                  ? '0 0 10px #ef4444'
+                  : status === 'working'
                   ? '0 0 8px #10b981'
                   : status === 'moving'
                   ? '0 0 8px #f59e0b'

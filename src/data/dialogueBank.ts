@@ -142,8 +142,69 @@ export const AMBIENT_QUOTES: AmbientQuote[] = [
 ];
 
 /**
- * Lời thoại ngẫu nhiên của GitCat khi được người dùng vuốt ve
+ * Lời thoại hài hước định kỳ từ Tượng Phật
  */
+export const BUDDHA_MEME_QUOTES = [
+  'Tha thứ cho ngươi là việc của Phật, nhưng tiễn ngươi về gặp Phật là việc của ta! 📿',
+  'Nam Mô A Di Đà Phật, bần tăng khuyên thí chủ nên tự giác rollback code! 🙏',
+  'Phật độ người hữu duyên, không độ kẻ push force đè commit đồng đội! 🧘',
+  'Vạn pháp quy tâm, vạn bug quy về... thằng viết code trước! 🌸',
+  'Khổ hải vô biên, quay đầu là bờ... còn ngoan cố thì bần tăng phóng tràng hạt! 📿',
+  'Tâm bất biến giữa dòng đời vạn bug, niệm một câu A Di Đà Phật rồi xóa hết viết lại! 🪷'
+];
+
+/**
+ * Lời thoại hài hước định kỳ từ Thánh Giá Chúa
+ */
+export const CHRISTIAN_MEME_QUOTES = [
+  'Người nào xứng đáng, ta sẽ ban Đinh! 🔨',
+  'Nhân danh Chúa, ta ban bug cho con! ✝️🐛',
+  'Đứa nào commit mà không test, chuẩn bị lên giá đóng đinh! 🪵',
+  'Phúc cho ai không thấy mà tin, nhưng họa cho ai code mà không chạy unit test! 📖',
+  'Hỡi con chiên ngoan đạo, bug này là bài test đức tin của con đó! 😇',
+  'Ta đã tha thứ cho mọi tội lỗi của con, nhưng compiler thì tuyệt đối KHÔNG! ⚡'
+];
+
+/**
+ * Phản ứng thảng thốt của từng Agent khi né tránh đinh và tràng hạt
+ */
+export const DODGE_REACTIONS: Record<string, string[]> = {
+  agent_1: [
+    'Á đù đạn đạo bay! Cúi đầu né gấp bà con ơi! 🏃💨',
+    'Tràng hạt Phật tổ giáng thế! May mà Pé Na lùn một mẩu nên lọt qua! 🙈',
+    'Chúa ban đinh thiệt kìa! Pé Na xém rụng mái tóc ngắn! 😱'
+  ],
+  agent_2: [
+    'Chúa ban đinh thiệt kìa trời ơi! Xém lủng trán Pé Ken! 🔨😱',
+    'Quả đinh xé gió 300km/h! Phản xạ game thủ cứu Pé Ken một mạng! ⚡',
+    'May quá né kịp! Lệch 2cm là rách luôn cái áo vest xịn! 😂'
+  ],
+  agent_3: [
+    'Lão Lục lươn lẹo quen rồi, đinh này tuổi gì trúng được ta! 😂',
+    'May quá cúi rạp người, xém nữa đinh găm trúng mông Lão Lục rồi! 🛡️',
+    'Tràng hạt bay xoáy kinh vậy! Lão Lục thoát chết trong gang tấc! 📿'
+  ],
+  agent_4: [
+    'Tràng hạt lướt qua tai, tóc gió thôi bay! Lão Cửu né đỉnh chưa! 📿',
+    'Vừa deploy vừa né đinh thần, đúng là kỹ năng sinh tồn cấp cao! 🚀',
+    'Đinh găm sượt qua chóp nón, hú hồn chim én! ⚡'
+  ]
+};
+
+export function getRandomBuddhaMeme(): string {
+  return BUDDHA_MEME_QUOTES[Math.floor(Math.random() * BUDDHA_MEME_QUOTES.length)];
+}
+
+export function getRandomChristianMeme(): string {
+  return CHRISTIAN_MEME_QUOTES[Math.floor(Math.random() * CHRISTIAN_MEME_QUOTES.length)];
+}
+
+export function getRandomDodgeReaction(agentId: string): string {
+  const list = DODGE_REACTIONS[agentId] || [
+    'Ối giời ơi né gấp! Đạn đạo bay vèo qua đầu! 🏃💨'
+  ];
+  return list[Math.floor(Math.random() * list.length)];
+}
 export const GITCAT_REACTIONS = [
   '😻 *Meow meow... purr purr!* GitCat dụi đầu vào tay bạn làm nũng, chúc bạn một ngày code không lỗi lầm!',
   '🐾 *Meo~* GitCat phe phẩy cái đuôi cam, nằm lăn tròn phơi bụng đòi gãi cằm!',

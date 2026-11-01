@@ -15,13 +15,17 @@ interface ChristianShrineProps {
   rotation?: number;
   onPray?: () => void;
   isPrayingAny?: boolean;
+  speechText?: string | null;
+  isMiracleActive?: boolean;
 }
 
 export function ChristianShrine({
   position = [2.4, 0, -4.8],
   rotation = 0,
   onPray,
-  isPrayingAny = false
+  isPrayingAny = false,
+  speechText = null,
+  isMiracleActive = false
 }: ChristianShrineProps) {
   const [isHovered, setIsHovered] = useState(false);
   const haloRef = useRef<THREE.Group>(null);
@@ -33,16 +37,18 @@ export function ChristianShrine({
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime();
 
-    // Hào quang vàng xoay êm đềm và xung nhịp phát sáng
+    // Hào quang vàng xoay êm đềm và xung nhịp phát sáng (khi có phép màu thì bừng sáng gấp 1.8 lần)
     if (haloRef.current) {
       haloRef.current.rotation.z = Math.sin(elapsed * 0.4) * 0.08;
-      const pulse = 1 + Math.sin(elapsed * 2.5) * 0.04;
+      const basePulse = isMiracleActive ? 1.6 : 1.0;
+      const pulse = basePulse + Math.sin(elapsed * (isMiracleActive ? 8 : 2.5)) * 0.08;
       haloRef.current.scale.set(pulse, pulse, 1);
     }
 
     // Ánh sáng nến thờ lung linh ấm áp
     if (lightRef.current) {
-      lightRef.current.intensity = 1.6 + Math.sin(elapsed * 6) * 0.25 + (isPrayingAny ? 0.9 : 0);
+      const miracleBoost = isMiracleActive ? 3.0 : 0;
+      lightRef.current.intensity = 1.6 + Math.sin(elapsed * 6) * 0.25 + (isPrayingAny ? 0.9 : 0) + miracleBoost;
     }
 
     // Ngọn lửa nến bập bùng
@@ -367,6 +373,47 @@ export function ChristianShrine({
           >
             <span>✝️</span>
             <span>Bàn Thờ Chúa & Thánh Giá • Cầu Bình An & Sáng Suốt</span>
+          </div>
+        </Html>
+      )}
+
+      {/* 9.5. HỘP THOẠI HÀI HƯỚC CỦA CHÚA & THÁNH GIÁ (Christian Speech Bubble) */}
+      {speechText && (
+        <Html
+          position={[0, 2.5, 0]}
+          center
+          distanceFactor={13}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="thought-bubble-wrapper">
+            <div
+              className="thought-bubble"
+              style={{
+                width: '180px',
+                minHeight: '52px',
+                padding: '8px 12px',
+                borderRadius: '10px',
+                backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                borderColor: '#fbbf24',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                boxShadow: '0 6px 24px rgba(251, 191, 36, 0.5), 0 2px 10px rgba(0,0,0,0.5)',
+                color: '#ffffff',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '11px',
+                fontWeight: 700,
+                lineHeight: '1.4',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <span style={{ fontSize: '12px', color: '#fbbf24' }}>✝️ Thánh Giá Uy Nghi:</span>
+              <span style={{ color: '#f8fafc' }}>"{speechText}"</span>
+            </div>
+            <div className="thought-arrow" style={{ borderTopColor: '#0f172a' }} />
           </div>
         </Html>
       )}

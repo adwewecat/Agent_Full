@@ -6,8 +6,20 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { AgentData, AgentStatus, WorkstationData, DialogueLog, getWorkstationSeatTransform } from '../types/agent';
-import { getRandomAmbientQuote } from '../data/dialogueBank';
+import {
+  AgentData,
+  AgentStatus,
+  WorkstationData,
+  DialogueLog,
+  SpiritualProjectile,
+  getWorkstationSeatTransform
+} from '../types/agent';
+import {
+  getRandomAmbientQuote,
+  getRandomBuddhaMeme,
+  getRandomChristianMeme,
+  getRandomDodgeReaction
+} from '../data/dialogueBank';
 
 export const INITIAL_WORKSTATIONS: WorkstationData[] = [
   {
@@ -246,6 +258,13 @@ export function useAgentStore() {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>('agent_2');
   const [clickTarget, setClickTarget] = useState<[number, number, number] | null>(null);
   const [dialogueLogs, setDialogueLogs] = useState<DialogueLog[]>(INITIAL_DIALOGUES);
+
+  // Trạng thái hiệu ứng tâm linh & đạn đạo
+  const [projectiles, setProjectiles] = useState<SpiritualProjectile[]>([]);
+  const [buddhaSpeech, setBuddhaSpeech] = useState<string | null>(null);
+  const [christianSpeech, setChristianSpeech] = useState<string | null>(null);
+  const [buddhaMiracleActive, setBuddhaMiracleActive] = useState<boolean>(false);
+  const [christianMiracleActive, setChristianMiracleActive] = useState<boolean>(false);
 
   // Ref lưu hàm dispatch để giải quyết gọi lồng nhau trong completeMovement
   const dispatchRef = useRef<(agentId: string, stationId: string, requirePrayer?: boolean) => void>(() => {});
@@ -638,6 +657,219 @@ export function useAgentStore() {
   }, [addDialogue]);
 
   /**
+   * 📿 Phật Phóng Tràng Hạt: Kích hoạt thần tích tượng Phật, hiện hình bóng Phật Tổ và phóng chuỗi tràng hạt bay xé gió
+   */
+  const castBuddhaMiracle = useCallback((customQuote?: string) => {
+    const quote = customQuote || getRandomBuddhaMeme();
+    setBuddhaSpeech(quote);
+    setBuddhaMiracleActive(true);
+
+    addDialogue(
+      '🙏 Đức Phật Từ Bi',
+      '#f59e0b',
+      `"${quote}"`,
+      '📿'
+    );
+
+    // Bắn 2 chuỗi tràng hạt bồ đề bay tỏa về phía phòng họp & bàn làm việc
+    const now = Date.now();
+    const newProjectiles: SpiritualProjectile[] = [
+      {
+        id: `bead_${now}_1`,
+        type: 'bead',
+        startPosition: [-2.4, 1.25, -4.8],
+        targetPosition: [0, 0.75, -3.4], // Hướng về bàn Giám đốc Pé Ken
+        currentPosition: [-2.4, 1.25, -4.8],
+        progress: 0,
+        speed: 0.55
+      },
+      {
+        id: `bead_${now}_2`,
+        type: 'bead',
+        startPosition: [-2.4, 1.25, -4.8],
+        targetPosition: [-1.15, 0.75, 1.0], // Hướng về bàn họp Pé Na & Lão Lục
+        currentPosition: [-2.4, 1.25, -4.8],
+        progress: 0,
+        speed: 0.48
+      }
+    ];
+
+    setProjectiles((prev) => [...prev, ...newProjectiles]);
+
+    // Hiện thân Phật duy trì 3.2s rồi vụt mất, câu thoại biến mất sau 5s
+    setTimeout(() => {
+      setBuddhaMiracleActive(false);
+    }, 3200);
+
+    setTimeout(() => {
+      setBuddhaSpeech(null);
+    }, 5200);
+  }, [addDialogue]);
+
+  /**
+   * 🔨 Chúa Ban Đinh: Kích hoạt thần tích Thánh Giá, hiện luồng sáng thiên thần và bắn đinh sắt xé gió
+   */
+  const castChristianMiracle = useCallback((customQuote?: string) => {
+    const quote = customQuote || getRandomChristianMeme();
+    setChristianSpeech(quote);
+    setChristianMiracleActive(true);
+
+    addDialogue(
+      '✝️ Thánh Giá Uy Nghi',
+      '#fbbf24',
+      `"${quote}"`,
+      '🔨'
+    );
+
+    // Bắn 3 chiếc Đinh Thánh xoay tít xé gió về phía phòng
+    const now = Date.now();
+    const newProjectiles: SpiritualProjectile[] = [
+      {
+        id: `nail_${now}_1`,
+        type: 'nail',
+        startPosition: [2.4, 1.35, -4.8],
+        targetPosition: [0, 0.8, -3.4], // Hướng về bàn Giám đốc Pé Ken
+        currentPosition: [2.4, 1.35, -4.8],
+        progress: 0,
+        speed: 0.65
+      },
+      {
+        id: `nail_${now}_2`,
+        type: 'nail',
+        startPosition: [2.4, 1.35, -4.8],
+        targetPosition: [1.15, 0.8, 0.8], // Hướng về Lão Cửu
+        currentPosition: [2.4, 1.35, -4.8],
+        progress: 0,
+        speed: 0.58
+      },
+      {
+        id: `nail_${now}_3`,
+        type: 'nail',
+        startPosition: [2.4, 1.35, -4.8],
+        targetPosition: [-1.15, 0.8, 0.8], // Hướng về Pé Na
+        currentPosition: [2.4, 1.35, -4.8],
+        progress: 0,
+        speed: 0.52
+      }
+    ];
+
+    setProjectiles((prev) => [...prev, ...newProjectiles]);
+
+    // Hiện thân thiên thần duy trì 3.2s rồi vụt mất, câu thoại biến mất sau 5s
+    setTimeout(() => {
+      setChristianMiracleActive(false);
+    }, 3200);
+
+    setTimeout(() => {
+      setChristianSpeech(null);
+    }, 5200);
+  }, [addDialogue]);
+
+  /**
+   * 🏃 Kích hoạt phản ứng né tránh (Dodge Reaction) của Agent khi đạn đạo bay tới gần
+   */
+  const triggerAgentDodge = useCallback((agentId: string, threatType: 'nail' | 'bead') => {
+    const reaction = getRandomDodgeReaction(agentId);
+
+    setAgents((prev) => {
+      const targetAgent = prev.find((a) => a.id === agentId);
+      if (!targetAgent) return prev;
+
+      addDialogue(
+        targetAgent.codename || targetAgent.name,
+        targetAgent.color,
+        reaction,
+        threatType === 'nail' ? '🔨' : '📿'
+      );
+
+      const oldTask = targetAgent.currentTask;
+
+      // Khôi phục trạng thái làm việc bình thường sau 2.2 giây
+      setTimeout(() => {
+        setAgents((curr) =>
+          curr.map((a) =>
+            a.id === agentId
+              ? {
+                  ...a,
+                  status: a.isSeated ? 'working' : 'idle',
+                  thoughtIcon: '😌',
+                  thoughtText: 'Phù... may mà né kịp!',
+                  currentTask: oldTask
+                }
+              : a
+          )
+        );
+      }, 2200);
+
+      return prev.map((a) =>
+        a.id === agentId
+          ? {
+              ...a,
+              status: 'dodging',
+              thoughtIcon: '⚠️',
+              thoughtText: reaction,
+              currentTask: threatType === 'nail' ? 'Cúi rạp người né Đinh Thánh!' : 'Cúi đầu né Tràng Hạt!'
+            }
+          : a
+      );
+    });
+  }, [addDialogue]);
+
+  /**
+   * ✈️ Vòng lặp cập nhật quỹ đạo bay của các đạn đạo tâm linh (Projectiles Interpolation Loop)
+   */
+  useEffect(() => {
+    if (projectiles.length === 0) return;
+
+    const interval = setInterval(() => {
+      setProjectiles((prev) => {
+        const next: SpiritualProjectile[] = [];
+
+        prev.forEach((p) => {
+          const newProgress = p.progress + 0.04 * (p.speed / 0.5);
+
+          if (newProgress < 1.0) {
+            // Nội suy vị trí bay từ startPosition -> targetPosition
+            const [sx, sy, sz] = p.startPosition;
+            const [tx, ty, tz] = p.targetPosition;
+            const curX = sx + (tx - sx) * newProgress;
+            // Đạn bay theo đường cong parabol nhẹ trong không trung
+            const arcY = Math.sin(newProgress * Math.PI) * 0.45;
+            const curY = sy + (ty - sy) * newProgress + arcY;
+            const curZ = sz + (tz - sz) * newProgress;
+
+            next.push({
+              ...p,
+              progress: newProgress,
+              currentPosition: [curX, curY, curZ]
+            });
+          }
+        });
+
+        return next;
+      });
+    }, 32);
+
+    return () => clearInterval(interval);
+  }, [projectiles.length]);
+
+  /**
+   * ⏱️ Tự động kích hoạt Thần Tích định kỳ (mỗi 24 - 30 giây luân phiên Phật hoặc Chúa)
+   */
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // 50% Phật phóng tràng hạt, 50% Chúa ban đinh
+      if (Math.random() > 0.5) {
+        castBuddhaMiracle();
+      } else {
+        castChristianMiracle();
+      }
+    }, 28000);
+
+    return () => clearInterval(timer);
+  }, [castBuddhaMiracle, castChristianMiracle]);
+
+  /**
    * ⏱️ Ambient Office Chatter: Tự động phát sinh những câu chuyện phiếm, thời tiết,
    * tin tức công nghệ hot và những khoảnh khắc vui vẻ ngẫu nhiên của các Agent.
    */
@@ -713,6 +945,11 @@ export function useAgentStore() {
     clickTarget,
     dialogueLogs,
     isPrayingAny,
+    projectiles,
+    buddhaSpeech,
+    christianSpeech,
+    buddhaMiracleActive,
+    christianMiracleActive,
     selectAgent,
     setAgentTarget,
     setAgentStatus,
@@ -720,6 +957,9 @@ export function useAgentStore() {
     dispatchToWorkstation,
     teamPrayer,
     christianPrayer,
+    castBuddhaMiracle,
+    castChristianMiracle,
+    triggerAgentDodge,
     simulateBackendEvent,
     addDialogue
   };

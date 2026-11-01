@@ -32,6 +32,8 @@ interface DashboardHUDProps {
   onPetCat?: () => void;
   onTeamPrayer?: () => void;
   onTeamChristianPrayer?: () => void;
+  onCastBuddhaMiracle?: () => void;
+  onCastChristianMiracle?: () => void;
 }
 
 export function DashboardHUD({
@@ -44,7 +46,9 @@ export function DashboardHUD({
   onSimulateBackendEvent,
   onPetCat,
   onTeamPrayer,
-  onTeamChristianPrayer
+  onTeamChristianPrayer,
+  onCastBuddhaMiracle,
+  onCastChristianMiracle
 }: DashboardHUDProps) {
   const [showLogs, setShowLogs] = useState(true);
   const selectedAgent = agents.find((a) => a.id === selectedAgentId);
@@ -258,6 +262,36 @@ export function DashboardHUD({
           >
             <span>✝️</span>
             <span>Cầu Nguyện Chúa</span>
+          </button>
+
+          {/* Nút Phật Phóng Tràng Hạt */}
+          <button
+            className="hud-action-btn shrine"
+            onClick={onCastBuddhaMiracle}
+            title="Đức Phật hiển linh, phóng chuỗi tràng hạt bồ đề bay xé gió qua phòng họp!"
+            style={{
+              background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.3), rgba(180, 83, 9, 0.4))',
+              border: '1.5px solid #f97316',
+              color: '#fdba74'
+            }}
+          >
+            <span>📿</span>
+            <span>Phật Phóng Hạt</span>
+          </button>
+
+          {/* Nút Chúa Ban Đinh */}
+          <button
+            className="hud-action-btn shrine"
+            onClick={onCastChristianMiracle}
+            title="Thánh Giá hiển linh, ban Đinh Thánh bay vèo qua phòng họp để các Agent né tránh!"
+            style={{
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(161, 98, 7, 0.4))',
+              border: '1.5px solid #fbbf24',
+              color: '#fef08a'
+            }}
+          >
+            <span>🔨</span>
+            <span>Chúa Ban Đinh</span>
           </button>
 
           {/* Nút vuốt ve GitCat */}

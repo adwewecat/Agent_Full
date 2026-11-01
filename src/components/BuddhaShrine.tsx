@@ -15,13 +15,17 @@ interface BuddhaShrineProps {
   rotation?: number;
   onPray?: () => void;
   isPrayingAny?: boolean;
+  speechText?: string | null;
+  isMiracleActive?: boolean;
 }
 
 export function BuddhaShrine({
   position = [-0.5, 0, -5.4],
   rotation = 0,
   onPray,
-  isPrayingAny = false
+  isPrayingAny = false,
+  speechText = null,
+  isMiracleActive = false
 }: BuddhaShrineProps) {
   const [isHovered, setIsHovered] = useState(false);
   const haloRef = useRef<THREE.Mesh>(null);
@@ -44,16 +48,18 @@ export function BuddhaShrine({
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime();
 
-    // Hào quang vàng xoay nhẹ và xung nhịp phát sáng
+    // Hào quang vàng xoay nhẹ và xung nhịp phát sáng (khi có phép màu thì bừng sáng gấp 1.8 lần)
     if (haloRef.current) {
-      haloRef.current.rotation.z = elapsed * 0.25;
-      const scale = 1 + Math.sin(elapsed * 2) * 0.03;
+      haloRef.current.rotation.z = elapsed * (isMiracleActive ? 1.2 : 0.25);
+      const baseScale = isMiracleActive ? 1.6 : 1.0;
+      const scale = baseScale + Math.sin(elapsed * (isMiracleActive ? 8 : 2)) * 0.08;
       haloRef.current.scale.set(scale, scale, 1);
     }
 
     // Ánh sáng nến thờ lung linh
     if (lightRef.current) {
-      lightRef.current.intensity = 1.4 + Math.sin(elapsed * 5) * 0.2 + (isPrayingAny ? 0.8 : 0);
+      const miracleBoost = isMiracleActive ? 2.5 : 0;
+      lightRef.current.intensity = 1.4 + Math.sin(elapsed * 5) * 0.2 + (isPrayingAny ? 0.8 : 0) + miracleBoost;
     }
 
     // Khói hương bay lượn uốn cong
@@ -432,6 +438,47 @@ export function BuddhaShrine({
             <div style={{ fontSize: '9.5px', color: '#fef3c7', fontWeight: 600 }}>
               {isPrayingAny ? '✨ Đang truyền năng lượng an lạc...' : 'Cầu Bình An • Xóa Hết Lỗi Bug 0%'}
             </div>
+          </div>
+        </Html>
+      )}
+
+      {/* 8.5. HỘP THOẠI HÀI HƯỚC CỦA ĐỨC PHẬT (Buddha Speech Bubble) */}
+      {speechText && (
+        <Html
+          position={[0, 2.5, 0]}
+          center
+          distanceFactor={13}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="thought-bubble-wrapper">
+            <div
+              className="thought-bubble"
+              style={{
+                width: '180px',
+                minHeight: '52px',
+                padding: '8px 12px',
+                borderRadius: '10px',
+                backgroundColor: 'rgba(217, 119, 6, 0.96)',
+                borderColor: '#fef08a',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                boxShadow: '0 6px 24px rgba(245, 158, 11, 0.6), 0 2px 10px rgba(0,0,0,0.5)',
+                color: '#ffffff',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '11px',
+                fontWeight: 700,
+                lineHeight: '1.4',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <span style={{ fontSize: '12px', color: '#fef3c7' }}>📿 Đức Phật Từ Bi:</span>
+              <span style={{ color: '#ffffff' }}>"{speechText}"</span>
+            </div>
+            <div className="thought-arrow" style={{ borderTopColor: '#d97706' }} />
           </div>
         </Html>
       )}

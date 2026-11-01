@@ -17,12 +17,20 @@ export function App() {
     clickTarget,
     dialogueLogs,
     isPrayingAny,
+    projectiles,
+    buddhaSpeech,
+    christianSpeech,
+    buddhaMiracleActive,
+    christianMiracleActive,
     selectAgent,
     setAgentTarget,
     completeMovement,
     dispatchToWorkstation,
     teamPrayer,
     christianPrayer,
+    castBuddhaMiracle,
+    castChristianMiracle,
+    triggerAgentDodge,
     simulateBackendEvent,
     addDialogue
   } = useAgentStore();
@@ -70,14 +78,20 @@ export function App() {
         workstations={workstations}
         selectedAgentId={selectedAgentId}
         clickTarget={clickTarget}
+        projectiles={projectiles}
+        buddhaSpeech={buddhaSpeech}
+        christianSpeech={christianSpeech}
+        buddhaMiracleActive={buddhaMiracleActive}
+        christianMiracleActive={christianMiracleActive}
         onSelectAgent={selectAgent}
         onFloorClick={handleFloorClick}
         onArrival={completeMovement}
         onSelectWorkstation={handleSelectWorkstation}
         onPetCat={handlePetCat}
-        onPray={teamPrayer}
-        onPrayChristian={christianPrayer}
+        onPray={castBuddhaMiracle}
+        onPrayChristian={castChristianMiracle}
         isPrayingAny={isPrayingAny}
+        onDodgeTrigger={triggerAgentDodge}
       />
 
       {/* 2. Giao diện HUD giám sát và ra lệnh cho AI Agents */}
@@ -92,6 +106,8 @@ export function App() {
         onPetCat={handlePetCat}
         onTeamPrayer={teamPrayer}
         onTeamChristianPrayer={christianPrayer}
+        onCastBuddhaMiracle={castBuddhaMiracle}
+        onCastChristianMiracle={castChristianMiracle}
       />
     </div>
   );

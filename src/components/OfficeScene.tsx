@@ -11,7 +11,7 @@ import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
-import { AgentData, WorkstationData } from '../types/agent';
+import { AgentData, WorkstationData, SpiritualProjectile } from '../types/agent';
 import { Agent } from './Agent';
 import { OfficeEnvironment } from './OfficeEnvironment';
 import { Workstation } from './Workstation';
@@ -19,12 +19,18 @@ import { TargetMarker } from './TargetMarker';
 import { GitCat } from './GitCat';
 import { BuddhaShrine } from './BuddhaShrine';
 import { ChristianShrine } from './ChristianShrine';
+import { SpiritualEffects } from './SpiritualEffects';
 
 interface OfficeSceneProps {
   agents: AgentData[];
   workstations: WorkstationData[];
   selectedAgentId: string | null;
   clickTarget: [number, number, number] | null;
+  projectiles?: SpiritualProjectile[];
+  buddhaSpeech?: string | null;
+  christianSpeech?: string | null;
+  buddhaMiracleActive?: boolean;
+  christianMiracleActive?: boolean;
   onSelectAgent: (id: string | null) => void;
   onFloorClick: (point: [number, number, number]) => void;
   onArrival: (id: string, finalPosition: [number, number, number]) => void;
@@ -33,6 +39,7 @@ interface OfficeSceneProps {
   onPray?: () => void;
   onPrayChristian?: () => void;
   isPrayingAny?: boolean;
+  onDodgeTrigger?: (agentId: string, threatType: 'nail' | 'bead') => void;
 }
 
 export function OfficeScene({
@@ -40,6 +47,11 @@ export function OfficeScene({
   workstations,
   selectedAgentId,
   clickTarget,
+  projectiles = [],
+  buddhaSpeech = null,
+  christianSpeech = null,
+  buddhaMiracleActive = false,
+  christianMiracleActive = false,
   onSelectAgent,
   onFloorClick,
   onArrival,
@@ -47,7 +59,8 @@ export function OfficeScene({
   onPetCat,
   onPray,
   onPrayChristian,
-  isPrayingAny
+  isPrayingAny,
+  onDodgeTrigger
 }: OfficeSceneProps) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -135,6 +148,8 @@ export function OfficeScene({
           rotation={0}
           onPray={onPray}
           isPrayingAny={isPrayingAny}
+          speechText={buddhaSpeech}
+          isMiracleActive={buddhaMiracleActive}
         />
 
         {/* 6.6. Bàn thờ Chúa & Cây Thánh Giá mạ vàng uy nghi (Christian Shrine đặt góc tường hậu bên phải) */}
@@ -143,6 +158,17 @@ export function OfficeScene({
           rotation={0}
           onPray={onPrayChristian}
           isPrayingAny={isPrayingAny}
+          speechText={christianSpeech}
+          isMiracleActive={christianMiracleActive}
+        />
+
+        {/* 6.7. Hệ thống Hiệu ứng Thần Tích & Đạn Đạo Tâm Linh (Holy Nails & Prayer Beads + Dodge Reactions) */}
+        <SpiritualEffects
+          projectiles={projectiles}
+          buddhaMiracleActive={buddhaMiracleActive}
+          christianMiracleActive={christianMiracleActive}
+          agents={agents}
+          onDodgeTrigger={onDodgeTrigger}
         />
 
         {/* 7. Danh sách các trạm làm việc (Workstations) */}
