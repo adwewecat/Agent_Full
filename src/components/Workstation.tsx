@@ -16,6 +16,11 @@ interface WorkstationProps {
 export function Workstation({ data, onSelectStation }: WorkstationProps) {
   const { id, name, position, rotation, type, occupiedBy } = data;
 
+  // Nếu là trạm đài sen bái Phật, giao diện 3D được render chuyên biệt bởi <BuddhaShrine />
+  if (type === 'shrine') {
+    return null;
+  }
+
   const isServer = type === 'server';
   const isLounge = type === 'lounge';
   const isArcade = type === 'arcade';

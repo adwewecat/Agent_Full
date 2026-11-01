@@ -30,6 +30,7 @@ interface DashboardHUDProps {
   onDispatchToStation: (agentId: string, stationId: string) => void;
   onSimulateBackendEvent: () => void;
   onPetCat?: () => void;
+  onTeamPrayer?: () => void;
 }
 
 export function DashboardHUD({
@@ -40,7 +41,8 @@ export function DashboardHUD({
   onSelectAgent,
   onDispatchToStation,
   onSimulateBackendEvent,
-  onPetCat
+  onPetCat,
+  onTeamPrayer
 }: DashboardHUDProps) {
   const [showLogs, setShowLogs] = useState(true);
   const selectedAgent = agents.find((a) => a.id === selectedAgentId);
@@ -108,13 +110,33 @@ export function DashboardHUD({
                       </div>
                     </div>
 
-                    <span className={`hud-status-badge ${agent.status}`}>
-                      {agent.status === 'working'
-                        ? 'Typing'
-                        : agent.status === 'moving'
-                        ? 'Walking'
-                        : 'Idle'}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {agent.blessed && (
+                        <span
+                          title="Đã được Phật phù hộ: 0% Bug, 100% Green Test!"
+                          style={{
+                            fontSize: '9.5px',
+                            color: '#fef08a',
+                            backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                            border: '1px solid #fbbf24',
+                            padding: '1px 5px',
+                            borderRadius: '6px',
+                            fontWeight: 700
+                          }}
+                        >
+                          🙏 0% Bug
+                        </span>
+                      )}
+                      <span className={`hud-status-badge ${agent.status}`}>
+                        {agent.status === 'working'
+                          ? 'Typing'
+                          : agent.status === 'moving'
+                          ? 'Walking'
+                          : agent.status === 'praying'
+                          ? '🙏 Praying'
+                          : 'Idle'}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="hud-agent-role">{agent.role}</div>
@@ -206,6 +228,21 @@ export function DashboardHUD({
         </div>
 
         <div className="hud-actions">
+          {/* Nút Toàn Đội Bái Phật Trang Nghiêm */}
+          <button
+            className="hud-action-btn shrine"
+            onClick={onTeamPrayer}
+            title="Cả đội ngũ Agent cùng dâng hương bái Phật cầu giải hạn mọi lỗi bug!"
+            style={{
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35))',
+              border: '1.5px solid #fbbf24',
+              color: '#fef08a'
+            }}
+          >
+            <span>🙏</span>
+            <span>Toàn Đội Bái Phật</span>
+          </button>
+
           {/* Nút vuốt ve GitCat */}
           <button
             className="hud-action-btn cat"

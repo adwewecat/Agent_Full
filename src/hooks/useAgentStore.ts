@@ -1,13 +1,25 @@
 /**
  * @file useAgentStore.ts
  * @description Hook quản lý trạng thái tập trung của đội ngũ AI Agent, điều phối di chuyển,
- * cập nhật bong bóng suy nghĩ và hệ thống định vị chỗ ngồi chuẩn xác (Seating Anchor System).
+ * cập nhật bong bóng suy nghĩ, hệ thống định vị chỗ ngồi chuẩn xác (Seating Anchor System)
+ * và Nghi thức bái Phật trang nghiêm trước khi nhận nhiệm vụ (Buddha Blessing Workflow).
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { AgentData, AgentStatus, WorkstationData, DialogueLog, getWorkstationSeatTransform } from '../types/agent';
 
 export const INITIAL_WORKSTATIONS: WorkstationData[] = [
+  {
+    id: 'station_buddha',
+    name: 'Đài Sen Bái Phật',
+    position: [-0.5, 0, -5.4],
+    rotation: 0,
+    type: 'shrine',
+    seatOffset: [0, 0, 1.2], // Đứng trang nghiêm trên mặt sàn trước bàn thờ
+    seatRotationOffset: Math.PI, // Quay mặt 180 độ hướng về phía tượng Phật (-Z)
+    isSeated: false,
+    occupiedBy: null
+  },
   {
     id: 'station_research',
     name: 'Research Pod Alpha',
@@ -77,10 +89,10 @@ export const INITIAL_WORKSTATIONS: WorkstationData[] = [
 ];
 
 // Tính toán tọa độ ban đầu chuẩn xác cho từng Agent dựa trên trạm làm việc của họ
-const initialNova = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[0]);
-const initialAxel = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[1]);
-const initialVesper = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[2]);
-const initialKip = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[3]);
+const initialNova = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[1]);
+const initialAxel = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[2]);
+const initialVesper = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[3]);
+const initialKip = getWorkstationSeatTransform(INITIAL_WORKSTATIONS[4]);
 
 export const INITIAL_AGENTS: AgentData[] = [
   {
@@ -94,6 +106,8 @@ export const INITIAL_AGENTS: AgentData[] = [
     isSeated: initialNova.isSeated,
     status: 'working',
     currentStationId: 'station_research',
+    pendingStationId: null,
+    blessed: false,
     currentTask: 'Phân tích tài liệu và cấu trúc API mới...',
     progress: 78,
     color: '#06b6d4',
@@ -114,6 +128,8 @@ export const INITIAL_AGENTS: AgentData[] = [
     isSeated: initialAxel.isSeated,
     status: 'working',
     currentStationId: 'station_coding',
+    pendingStationId: null,
+    blessed: false,
     currentTask: 'Biên dịch Core Engine & TDD modules...',
     progress: 45,
     color: '#f97316',
@@ -134,6 +150,8 @@ export const INITIAL_AGENTS: AgentData[] = [
     isSeated: initialVesper.isSeated,
     status: 'working',
     currentStationId: 'station_qa',
+    pendingStationId: null,
+    blessed: false,
     currentTask: 'Kiểm toán quy chuẩn Clean Code & Security...',
     progress: 92,
     color: '#ec4899',
@@ -154,6 +172,8 @@ export const INITIAL_AGENTS: AgentData[] = [
     isSeated: initialKip.isSeated,
     status: 'working',
     currentStationId: 'station_server',
+    pendingStationId: null,
+    blessed: false,
     currentTask: 'Cấu hình cluster máy chủ & Docker mesh...',
     progress: 60,
     color: '#10b981',
@@ -169,25 +189,25 @@ export const INITIAL_DIALOGUES: DialogueLog[] = [
   {
     id: 'dlg_1',
     timestamp: '09:00',
-    senderName: 'Nova',
-    senderColor: '#06b6d4',
-    message: 'Chào buổi sáng cả đội! Đang bắt đầu quét dữ liệu dự án mới.',
-    icon: '🔍'
+    senderName: 'Axel',
+    senderColor: '#f97316',
+    message: 'Chào buổi sáng cả đội! Nhớ thắp hương bái Phật cầu code không bug trước khi deploy nhé!',
+    icon: '🙏'
   },
   {
     id: 'dlg_2',
     timestamp: '09:05',
-    senderName: 'Axel',
-    senderColor: '#f97316',
-    message: 'Engine 3D đã sẵn sàng! Đang viết code module di chuyển.',
-    icon: '💻'
+    senderName: 'Nova',
+    senderColor: '#06b6d4',
+    message: 'Đã bái Phật xong, tâm thanh tịnh, sẵn sàng crawl dữ liệu!',
+    icon: '✨'
   },
   {
     id: 'dlg_3',
     timestamp: '09:10',
     senderName: 'Vesper',
     senderColor: '#ec4899',
-    message: 'Bộ kiểm tra Clean Code đã kích hoạt. Không có dead code!',
+    message: 'Bộ kiểm tra Clean Code đã kích hoạt. Nhờ Phật độ nên 0 bug, 100% test xanh!',
     icon: '🛡️'
   }
 ];
@@ -198,6 +218,9 @@ export function useAgentStore() {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>('agent_2');
   const [clickTarget, setClickTarget] = useState<[number, number, number] | null>(null);
   const [dialogueLogs, setDialogueLogs] = useState<DialogueLog[]>(INITIAL_DIALOGUES);
+
+  // Ref lưu hàm dispatch để giải quyết gọi lồng nhau trong completeMovement
+  const dispatchRef = useRef<(agentId: string, stationId: string, requirePrayer?: boolean) => void>(() => {});
 
   /**
    * Thêm log hội thoại mới vào feed
@@ -248,6 +271,7 @@ export function useAgentStore() {
               targetRotation: null,
               isSeated: false,
               currentStationId: null,
+              pendingStationId: null,
               status: 'moving',
               thoughtIcon: '🏃',
               thoughtText: 'Đang di chuyển trên sàn...',
@@ -282,97 +306,223 @@ export function useAgentStore() {
   }, []);
 
   /**
+   * Điều phối Agent đến một trạm làm việc cụ thể.
+   * QUY TẮC CỐT LÕI: Nếu chưa bái Phật, Agent phải ghé Đài Sen bái Phật trước khi vào bàn làm việc!
+   */
+  const dispatchToWorkstation = useCallback(
+    (agentId: string, stationId: string, requirePrayer: boolean = true) => {
+      const station = workstations.find((s) => s.id === stationId);
+      if (!station) return;
+
+      const currentAgent = agents.find((a) => a.id === agentId);
+      if (!currentAgent) return;
+
+      // Nếu mục tiêu chính là Đài Sen Bái Phật, hoặc requirePrayer = false (đã bái rồi)
+      if (stationId === 'station_buddha' || !requirePrayer) {
+        const transform = getWorkstationSeatTransform(station);
+
+        setAgents((prev) =>
+          prev.map((agent) => {
+            if (agent.id === agentId) {
+              addDialogue(
+                agent.codename || agent.name,
+                agent.color,
+                `Đang di chuyển đến ${station.name}...`,
+                '🚶'
+              );
+              return {
+                ...agent,
+                targetPosition: transform.worldPosition,
+                targetRotation: transform.worldRotation,
+                isSeated: transform.isSeated,
+                currentStationId: stationId,
+                pendingStationId: null,
+                status: 'moving',
+                thoughtIcon: '🚶',
+                thoughtText: `Đi tới ${station.name}...`,
+                currentTask: `Di chuyển đến ${station.name}...`
+              };
+            }
+            return agent;
+          })
+        );
+
+        setWorkstations((prev) =>
+          prev.map((s) => {
+            if (s.id === stationId) return { ...s, occupiedBy: agentId };
+            if (s.occupiedBy === agentId) return { ...s, occupiedBy: null };
+            return s;
+          })
+        );
+
+        setClickTarget(transform.worldPosition);
+        return;
+      }
+
+      // NẾU CHƯA BÁI PHẬT: Tự động ghé Đài Sen Bái Phật trước khi bắt đầu công việc!
+      const buddhaStation = workstations.find((s) => s.id === 'station_buddha');
+      if (buddhaStation) {
+        const buddhaTransform = getWorkstationSeatTransform(buddhaStation);
+
+        addDialogue(
+          currentAgent.codename || currentAgent.name,
+          currentAgent.color,
+          `Trước khi vào làm việc tại ${station.name}, mình phải ghé Đài Sen bái Phật cầu bình an, 0% Bug! 🙏`,
+          '🙏'
+        );
+
+        setAgents((prev) =>
+          prev.map((agent) => {
+            if (agent.id === agentId) {
+              return {
+                ...agent,
+                targetPosition: buddhaTransform.worldPosition,
+                targetRotation: buddhaTransform.worldRotation,
+                isSeated: false,
+                currentStationId: 'station_buddha',
+                pendingStationId: stationId, // Lưu lại trạm đích để sau khi bái Phật xong sẽ đi tiếp
+                status: 'moving',
+                thoughtIcon: '🙏',
+                thoughtText: 'Ghé Đài Sen bái Phật trước...',
+                currentTask: `Bái Phật cầu an trước khi nhận nhiệm vụ tại ${station.name}...`
+              };
+            }
+            return agent;
+          })
+        );
+
+        setClickTarget(buddhaTransform.worldPosition);
+      }
+    },
+    [workstations, agents, addDialogue]
+  );
+
+  // Cập nhật ref cho hàm dispatchToWorkstation
+  useEffect(() => {
+    dispatchRef.current = dispatchToWorkstation;
+  }, [dispatchToWorkstation]);
+
+  /**
    * Cập nhật vị trí hiện tại khi Agent di chuyển hoàn tất
    */
   const completeMovement = useCallback(
     (id: string, finalPosition: [number, number, number], nextStatus: AgentStatus = 'idle') => {
-      setAgents((prev) =>
-        prev.map((agent) => {
-          if (agent.id === id) {
-            // Nếu Agent đang có trạm làm việc được chỉ định, luôn kích hoạt trạng thái working
-            const isAtStation = Boolean(agent.currentStationId);
-            const resolvedStatus = isAtStation ? 'working' : nextStatus;
-            const isWorking = resolvedStatus === 'working';
-            const newIcon = isWorking
-              ? agent.id === 'agent_1'
-                ? '🔍'
-                : agent.id === 'agent_2'
-                ? '💻'
-                : agent.id === 'agent_3'
-                ? '🛡️'
-                : '⚡'
-              : '☕';
-            const newThought = isWorking
-              ? 'Đang tập trung làm việc tại trạm...'
-              : 'Nghỉ ngơi, ngắm cảnh văn phòng...';
+      setAgents((prev) => {
+        const targetAgent = prev.find((a) => a.id === id);
+        if (!targetAgent) return prev;
 
-            return {
-              ...agent,
-              position: finalPosition,
-              targetPosition: null,
-              status: resolvedStatus,
-              thoughtIcon: newIcon,
-              thoughtText: newThought,
-              currentTask: isWorking ? 'Đang thực thi tác vụ tại trạm...' : 'Đang ở trạng thái nghỉ (Idle)'
-            };
+        // 1. Nếu Agent vừa bước tới trước bàn thờ Phật
+        if (targetAgent.currentStationId === 'station_buddha') {
+          addDialogue(
+            targetAgent.codename || targetAgent.name,
+            targetAgent.color,
+            '🙏 Đã thành tâm cúi lạy 3 lạy trước tượng Phật: Cầu giải trừ mọi lỗi bug, deploy suôn sẻ êm đềm!',
+            '🙏'
+          );
+
+          // Nếu có trạm đang chờ đến sau khi bái Phật, tự động chuyển sang trạm đó sau 2.8s
+          if (targetAgent.pendingStationId && targetAgent.pendingStationId !== 'station_buddha') {
+            const destStationId = targetAgent.pendingStationId;
+            setTimeout(() => {
+              dispatchRef.current(id, destStationId, false);
+            }, 2800);
           }
-          return agent;
-        })
-      );
+
+          return prev.map((agent) =>
+            agent.id === id
+              ? {
+                  ...agent,
+                  position: finalPosition,
+                  targetPosition: null,
+                  status: 'praying',
+                  blessed: true,
+                  thoughtIcon: '🙏',
+                  thoughtText: '🙏 Nam Mô A Di Đà Phật • Cầu code không bug!',
+                  currentTask: 'Đang thành tâm chắp tay vái lạy bái Phật...'
+                }
+              : agent
+          );
+        }
+
+        // 2. Nếu Agent bước tới trạm làm việc thông thường
+        const isAtStation = Boolean(targetAgent.currentStationId);
+        const resolvedStatus = isAtStation ? 'working' : nextStatus;
+        const isWorking = resolvedStatus === 'working';
+        const newIcon = isWorking
+          ? targetAgent.id === 'agent_1'
+            ? '🔍'
+            : targetAgent.id === 'agent_2'
+            ? '💻'
+            : targetAgent.id === 'agent_3'
+            ? '🛡️'
+            : '⚡'
+          : '☕';
+        const newThought = isWorking
+          ? targetAgent.blessed
+            ? '✨ Được Đức Phật phù hộ: 0% Bug, 100% Green Test!'
+            : 'Đang tập trung làm việc tại trạm...'
+          : 'Nghỉ ngơi, ngắm cảnh văn phòng...';
+
+        return prev.map((agent) =>
+          agent.id === id
+            ? {
+                ...agent,
+                position: finalPosition,
+                targetPosition: null,
+                status: resolvedStatus,
+                thoughtIcon: newIcon,
+                thoughtText: newThought,
+                currentTask: isWorking
+                  ? targetAgent.blessed
+                    ? 'Đang thực thi tác vụ (Có phước lành Phật hộ trì)...'
+                    : 'Đang thực thi tác vụ tại trạm...'
+                  : 'Đang ở trạng thái nghỉ (Idle)'
+              }
+            : agent
+        );
+      });
       setClickTarget(null);
     },
-    []
+    [addDialogue]
   );
 
   /**
-   * Điều phối Agent đến một trạm làm việc cụ thể với tọa độ ngồi/đứng chuẩn xác 100%
+   * Toàn thể đội ngũ AI Agent cùng nhau xếp hàng trang nghiêm trước đài sen bái Phật
    */
-  const dispatchToWorkstation = useCallback(
-    (agentId: string, stationId: string) => {
-      const station = workstations.find((s) => s.id === stationId);
-      if (!station) return;
+  const teamPrayer = useCallback(() => {
+    addDialogue(
+      'Cả Đội Ngũ AI',
+      '#fbbf24',
+      'Toàn đội tạm gác mọi tác vụ, cùng xếp hàng trang nghiêm trước Đài Sen dâng hương bái Phật!',
+      '🙏'
+    );
 
-      // Tính toán tọa độ và hướng quay chuẩn cho chỗ ngồi/đứng
-      const transform = getWorkstationSeatTransform(station);
+    // 4 vị trí xếp hàng ngay ngắn trước bàn thờ Phật [-0.5, 0, -5.4]
+    const prayerLine: [number, number, number][] = [
+      [-1.8, 0, -4.1],
+      [-0.6, 0, -4.1],
+      [0.6, 0, -4.1],
+      [1.8, 0, -4.1]
+    ];
 
-      setAgents((prev) =>
-        prev.map((agent) => {
-          if (agent.id === agentId) {
-            addDialogue(
-              agent.codename || agent.name,
-              agent.color,
-              `Đang di chuyển đến ${station.name}...`,
-              '🚶'
-            );
-            return {
-              ...agent,
-              targetPosition: transform.worldPosition,
-              targetRotation: transform.worldRotation,
-              isSeated: transform.isSeated,
-              currentStationId: stationId,
-              status: 'moving',
-              thoughtIcon: '🚶',
-              thoughtText: `Đi tới ${station.name}...`,
-              currentTask: `Di chuyển đến ${station.name}...`
-            };
-          }
-          return agent;
-        })
-      );
-
-      // Cập nhật occupiedBy trên workstation
-      setWorkstations((prev) =>
-        prev.map((s) => {
-          if (s.id === stationId) return { ...s, occupiedBy: agentId };
-          if (s.occupiedBy === agentId) return { ...s, occupiedBy: null };
-          return s;
-        })
-      );
-
-      setClickTarget(transform.worldPosition);
-    },
-    [workstations, addDialogue]
-  );
+    setAgents((prev) =>
+      prev.map((agent, idx) => {
+        const pos = prayerLine[idx % prayerLine.length];
+        return {
+          ...agent,
+          targetPosition: pos,
+          targetRotation: Math.PI, // Quay mặt 180 độ nhìn thẳng vào tượng Phật (-Z)
+          isSeated: false,
+          currentStationId: 'station_buddha',
+          pendingStationId: agent.currentStationId || 'station_coding',
+          status: 'moving',
+          thoughtIcon: '🙏',
+          thoughtText: 'Cùng cả đội đi dâng hương bái Phật...',
+          currentTask: 'Xếp hàng dâng hương trước tượng Phật...'
+        };
+      })
+    );
+  }, [addDialogue]);
 
   /**
    * Giả lập tín hiệu cập nhật trạng thái từ backend (Push Event)
@@ -387,7 +537,7 @@ export function useAgentStore() {
         { icon: '☕', text: 'Uống ngụm cà phê thơm ngon rồi code tiếp!', task: 'Nghỉ giữa hiệp ngắn...' },
         { icon: '🚀', text: 'Đã hoàn thành deploy nhánh main!', task: 'Kiểm tra telemetry...' },
         { icon: '🎮', text: 'Làm ván game arcade xả stress!', task: 'Chơi game giải trí...' },
-        { icon: '✨', text: 'Clean Code 100%, không còn warning nào!', task: 'Đồng bộ hóa Git repo...' }
+        { icon: '✨', text: 'Nhờ Phật độ, Clean Code 100%, không còn warning nào!', task: 'Đồng bộ hóa Git repo...' }
       ];
       const randomEvt = events[Math.floor(Math.random() * events.length)];
 
@@ -413,17 +563,21 @@ export function useAgentStore() {
     });
   }, [addDialogue]);
 
+  const isPrayingAny = agents.some((a) => a.status === 'praying');
+
   return {
     agents,
     workstations,
     selectedAgentId,
     clickTarget,
     dialogueLogs,
+    isPrayingAny,
     selectAgent,
     setAgentTarget,
     setAgentStatus,
     completeMovement,
     dispatchToWorkstation,
+    teamPrayer,
     simulateBackendEvent,
     addDialogue
   };

@@ -15,10 +15,12 @@ export function App() {
     selectedAgentId,
     clickTarget,
     dialogueLogs,
+    isPrayingAny,
     selectAgent,
     setAgentTarget,
     completeMovement,
     dispatchToWorkstation,
+    teamPrayer,
     simulateBackendEvent,
     addDialogue
   } = useAgentStore();
@@ -70,6 +72,8 @@ export function App() {
         onArrival={completeMovement}
         onSelectWorkstation={handleSelectWorkstation}
         onPetCat={handlePetCat}
+        onPray={teamPrayer}
+        isPrayingAny={isPrayingAny}
       />
 
       {/* 2. Giao diện HUD giám sát và ra lệnh cho AI Agents */}
@@ -82,6 +86,7 @@ export function App() {
         onDispatchToStation={dispatchToWorkstation}
         onSimulateBackendEvent={simulateBackendEvent}
         onPetCat={handlePetCat}
+        onTeamPrayer={teamPrayer}
       />
     </div>
   );

@@ -23,6 +23,7 @@ export interface AgentProps {
   targetRotation?: number | null;
   isSeated?: boolean;
   status: AgentStatus;
+  blessed?: boolean;
   color?: string;
   accentColor?: string;
   accessory?: 'cyber-visor' | 'headphones' | 'cat-ears' | 'cap';
@@ -134,6 +135,7 @@ function AgentModel({
   targetRotation,
   isSeated = false,
   status,
+  blessed = false,
   color = '#3b82f6',
   accentColor = '#f59e0b',
   accessory = 'headphones',
@@ -183,7 +185,8 @@ function AgentModel({
       idle: findClip(['Idle', 'idle', 'static']),
       walk: findClip(['Walk', 'walk', 'sprint']),
       sit: findClip(['Sit', 'sit', 'crouch', 'idle']),
-      typing: findClip(['Interact-right', 'interact-right', 'interact-left', 'Typing', 'typing', 'idle'])
+      typing: findClip(['Interact-right', 'interact-right', 'interact-left', 'Typing', 'typing', 'idle']),
+      pray: findClip(['emote-yes', 'holding-both', 'pick-up', 'idle'])
     };
   }, [names]);
 
@@ -193,6 +196,9 @@ function AgentModel({
 
     if (status === 'moving') {
       targetClipName = animationMap.walk;
+    } else if (status === 'praying') {
+      // Khi bái Phật: phát clip gật đầu vái lạy (emote-yes) hoặc chắp tay (holding-both)
+      targetClipName = animationMap.pray;
     } else if (status === 'working' || status === 'reviewing') {
       // Khi ngồi ghế: chơi animation sit; khi đứng trước tủ server/arcade: chơi typing/interact
       targetClipName = isSeated ? animationMap.sit : animationMap.typing;
@@ -222,9 +228,17 @@ function AgentModel({
     }
   }, [position, targetPosition]);
 
-  // Vòng lặp cập nhật chuyển động và xoay góc nhìn trong useFrame
-  useFrame((_, delta) => {
+  // Vòng lặp cập nhật chuyển động, góc quay và tư thế vái lạy trong useFrame
+  useFrame((state, delta) => {
     if (!group.current) return;
+
+    // Xử lý góc cúi người vái lạy Phật nhịp nhàng khi đang ở trạng thái bái Phật
+    if (status === 'praying') {
+      const bowAngle = Math.max(0, Math.sin(state.clock.getElapsedTime() * 3.8) * 0.28);
+      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, bowAngle, 0.2);
+    } else {
+      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, 0, 0.2);
+    }
 
     if (targetPosition) {
       const targetVec = new THREE.Vector3(targetPosition[0], targetPosition[1], targetPosition[2]);
@@ -296,6 +310,20 @@ function AgentModel({
 
       {/* Phụ kiện độc đáo theo từng Agent */}
       <AgentAccessory type={accessory} color={color} accentColor={accentColor} />
+
+      {/* Vòng hào quang sen vàng linh thiêng dưới chân khi đang bái Phật */}
+      {status === 'praying' && (
+        <group position={[0, 0.03, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.38, 0.72, 32]} />
+            <meshBasicMaterial color="#f59e0b" transparent opacity={0.88} side={THREE.DoubleSide} />
+          </mesh>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.38, 32]} />
+            <meshBasicMaterial color="#fef08a" transparent opacity={0.35} />
+          </mesh>
+        </group>
+      )}
 
       {/* Vòng hào quang phát sáng dưới chân khi được chọn (chỉ hiện khi đứng trên sàn) */}
       {isSelected && !isSeated && (
@@ -373,17 +401,41 @@ function AgentModel({
               height: '8px',
               borderRadius: '50%',
               backgroundColor:
-                status === 'working' ? '#10b981' : status === 'moving' ? '#f59e0b' : '#64748b',
+                status === 'working'
+                  ? '#10b981'
+                  : status === 'moving'
+                  ? '#f59e0b'
+                  : status === 'praying'
+                  ? '#eab308'
+                  : '#64748b',
               boxShadow:
                 status === 'working'
                   ? '0 0 10px #10b981'
                   : status === 'moving'
                   ? '0 0 10px #f59e0b'
+                  : status === 'praying'
+                  ? '0 0 14px #eab308'
                   : 'none'
             }}
           />
           <span style={{ color }}>{codename}</span>
           <span style={{ color: '#94a3b8', fontSize: '9.5px', fontWeight: 500 }}>({name} • {role})</span>
+          {blessed && (
+            <span
+              title="Đã được Phật phù hộ: 0% Bug, 100% Green Test!"
+              style={{
+                fontSize: '9px',
+                color: '#fef08a',
+                backgroundColor: 'rgba(245, 158, 11, 0.35)',
+                border: '1px solid #fbbf24',
+                padding: '1px 5px',
+                borderRadius: '8px',
+                fontWeight: 700
+              }}
+            >
+              🙏 0% Bug
+            </span>
+          )}
         </div>
       </Html>
     </group>

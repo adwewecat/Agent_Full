@@ -17,6 +17,7 @@ import { OfficeEnvironment } from './OfficeEnvironment';
 import { Workstation } from './Workstation';
 import { TargetMarker } from './TargetMarker';
 import { GitCat } from './GitCat';
+import { BuddhaShrine } from './BuddhaShrine';
 
 interface OfficeSceneProps {
   agents: AgentData[];
@@ -28,6 +29,8 @@ interface OfficeSceneProps {
   onArrival: (id: string, finalPosition: [number, number, number], nextStatus: AgentStatus) => void;
   onSelectWorkstation: (stationId: string) => void;
   onPetCat?: () => void;
+  onPray?: () => void;
+  isPrayingAny?: boolean;
 }
 
 export function OfficeScene({
@@ -39,7 +42,9 @@ export function OfficeScene({
   onFloorClick,
   onArrival,
   onSelectWorkstation,
-  onPetCat
+  onPetCat,
+  onPray,
+  isPrayingAny
 }: OfficeSceneProps) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -121,6 +126,14 @@ export function OfficeScene({
         {/* 6. Vòng chỉ thị điểm đích khi click (Target Marker) */}
         <TargetMarker position={clickTarget} />
 
+        {/* 6.5. Bàn thờ & Kim Thân Tượng Phật trang nghiêm (Buddha Shrine) */}
+        <BuddhaShrine
+          position={[-0.5, 0, -5.4]}
+          rotation={0}
+          onPray={onPray}
+          isPrayingAny={isPrayingAny}
+        />
+
         {/* 7. Danh sách các trạm làm việc (Workstations) */}
         {workstations.map((station) => (
           <Workstation
@@ -147,6 +160,7 @@ export function OfficeScene({
               targetRotation={agent.targetRotation}
               isSeated={agent.isSeated}
               status={agent.status}
+              blessed={agent.blessed}
               color={agent.color}
               accentColor={agent.accentColor}
               accessory={agent.accessory}

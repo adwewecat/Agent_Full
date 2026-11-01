@@ -4,7 +4,7 @@
  * Hệ thống điểm neo chỗ ngồi (Seating Anchor System) và Thú cưng văn phòng (GitCat).
  */
 
-export type AgentStatus = 'idle' | 'working' | 'moving' | 'reviewing';
+export type AgentStatus = 'idle' | 'working' | 'moving' | 'reviewing' | 'praying';
 
 export interface AgentData {
   /** Định danh duy nhất của Agent */
@@ -23,10 +23,14 @@ export interface AgentData {
   targetRotation?: number | null;
   /** Có đang ngồi trên ghế/sofa không (để nâng Y bù trừ độ trũng root bone sit) */
   isSeated?: boolean;
-  /** Trạng thái hiện tại: idle, working, moving, reviewing */
+  /** Trạng thái hiện tại: idle, working, moving, reviewing, praying */
   status: AgentStatus;
   /** ID trạm làm việc hiện tại đang gắn kết */
   currentStationId?: string | null;
+  /** Trạm tiếp theo sẽ đến sau khi bái Phật xong */
+  pendingStationId?: string | null;
+  /** Đã được Phật phù hộ / ban phước (Zero Bug Buff) */
+  blessed?: boolean;
   /** Tác vụ đang xử lý */
   currentTask: string;
   /** Tiến độ hoàn thành tác vụ (0 - 100%) */
@@ -54,8 +58,8 @@ export interface WorkstationData {
   position: [number, number, number];
   /** Hướng quay của trạm tính theo radian (Y axis) */
   rotation: number;
-  /** Loại trạm (coding, research, server, meeting, arcade) */
-  type: 'coding' | 'research' | 'server' | 'lounge' | 'arcade';
+  /** Loại trạm (coding, research, server, meeting, arcade, shrine) */
+  type: 'coding' | 'research' | 'server' | 'lounge' | 'arcade' | 'shrine';
   /** Độ dời tương đối của vị trí ngồi/đứng so với tâm trạm [X, Y, Z] */
   seatOffset: [number, number, number];
   /** Góc xoay của nhân vật khi ngồi/đứng tại trạm (so với góc quay của trạm) */
