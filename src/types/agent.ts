@@ -89,6 +89,10 @@ export interface DialogueLog {
   senderColor: string;
   message: string;
   icon: string;
+  category?: 'work' | 'casual';
+  citations?: string[];
+  predictions?: string[];
+  round?: number;
 }
 
 /**

@@ -1,33 +1,43 @@
 /**
  * @file DashboardHUD.tsx
- * @description Giao diện điều khiển và giám sát (HUD Overlay) phong cách nghệ thuật ấm cúng kết hợp Pixel-Agents.
- * Cung cấp thẻ nhân vật Chibi màu mè, bảng phân công nhiệm vụ,
- * hộp thoại tin nhắn thời gian thực (Dialogue Feed), nút giả lập sự kiện backend và tương tác với GitCat.
+ * @description Giao diện HUD điều hành Ban Giám Đốc C-Suite F&B & Xuất Nhập Khẩu (COO Bác Nam, CFO Bác Thắng, CRO Bác Hoàng).
+ * Tích hợp:
+ * 1. Khung CHAT công việc / tranh luận chiến lược ở bên trái, ưu tiên mới nhất lên trước, lọc chỉ hiện trao đổi công việc.
+ * 2. Tab lịch sử phiên họp để xem lại các quyết định chiến lược đã lưu trong localStorage.
+ * 3. Thanh nhập đề bài chiến lược và nút khởi động tranh luận 3 vòng phản biện độc lập.
+ * 4. Nút cấu hình 3 Gemini API Key riêng biệt cho từng Giám Đốc.
  */
 
 import { useState } from 'react';
-import { AgentData, WorkstationData, DialogueLog } from '../types/agent';
+import { AgentData, DialogueLog } from '../types/agent';
+import { DebateSession, ConsensusReport } from '../types/executive';
 import {
-  Activity,
-  Bot,
-  Compass,
   Cpu,
-  Layers,
   MessageSquare,
-  Play,
   Sparkles,
-  Terminal,
-  Wifi,
-  Heart
+  Send,
+  Key,
+  FileText,
+  History,
+  Search,
+  HelpCircle,
+  Compass,
+  Heart,
+  ChevronRight,
+  Flame
 } from 'lucide-react';
 
 interface DashboardHUDProps {
   agents: AgentData[];
-  workstations: WorkstationData[];
   selectedAgentId: string | null;
   dialogueLogs: DialogueLog[];
+  isDebating: boolean;
+  activeDebateSession: DebateSession | null;
+  pastSessions: DebateSession[];
   onSelectAgent: (id: string) => void;
-  onDispatchToStation: (agentId: string, stationId: string) => void;
+  onStartDebate: (problem: string) => void;
+  onOpenApiKeyModal: () => void;
+  onOpenReportModal: (report: ConsensusReport) => void;
   onSimulateBackendEvent: () => void;
   onPetCat?: () => void;
   onTeamPrayer?: () => void;
@@ -38,11 +48,15 @@ interface DashboardHUDProps {
 
 export function DashboardHUD({
   agents,
-  workstations,
   selectedAgentId,
   dialogueLogs,
+  isDebating,
+  activeDebateSession,
+  pastSessions,
   onSelectAgent,
-  onDispatchToStation,
+  onStartDebate,
+  onOpenApiKeyModal,
+  onOpenReportModal,
   onSimulateBackendEvent,
   onPetCat,
   onTeamPrayer,
@@ -50,10 +64,23 @@ export function DashboardHUD({
   onCastBuddhaMiracle,
   onCastChristianMiracle
 }: DashboardHUDProps) {
-  const [showLogs, setShowLogs] = useState(true);
-  const selectedAgent = agents.find((a) => a.id === selectedAgentId);
-  const workingCount = agents.filter((a) => a.status === 'working').length;
-  const movingCount = agents.filter((a) => a.status === 'moving').length;
+  const [activeTab, setActiveTab] = useState<'live' | 'history'>('live');
+  const [inputProblem, setInputProblem] = useState('');
+  const [showAmbientFeed, setShowAmbientFeed] = useState(false);
+
+  // Lọc chỉ những tin nhắn công việc / tranh luận chiến lược, sắp xếp MỚI NHẤT LÊN TRƯỚC
+  const workDebateLogs = dialogueLogs
+    .filter((log) => log.category === 'work')
+    .slice()
+    .reverse();
+
+  const handleStartDebateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputProblem.trim() || isDebating) return;
+    onStartDebate(inputProblem.trim());
+    setInputProblem('');
+    setActiveTab('live');
+  };
 
   return (
     <div className="hud-container">
@@ -64,181 +91,362 @@ export function DashboardHUD({
             <Cpu size={20} color="#38bdf8" />
           </div>
           <div>
-            <h1 className="hud-title">Agent_Full • Executive Conference & Director Office</h1>
-            <p className="hud-subtitle">Góc nhìn Mezzanine God-View • Giám sát & Điều phối Đội ngũ AI</p>
+            <h1 className="hud-title">Agent_Full • C-Suite Executive Command Center</h1>
+            <p className="hud-subtitle">Hội Đồng Lãnh Đạo F&B & Xuất Nhập Khẩu • 40+ Năm Kinh Nghiệm</p>
           </div>
         </div>
 
-        {/* Thống kê nhanh */}
-        <div className="hud-stats">
-          <div className="hud-stat-pill">
-            <Wifi size={14} color="#10b981" />
-            <span>Backend Sync: Live</span>
-          </div>
-          <div className="hud-stat-pill">
-            <Activity size={14} color="#f59e0b" />
-            <span>
-              {workingCount} Working • {movingCount} Moving • {agents.length} Agents
-            </span>
-          </div>
+        {/* Thanh Nhập Đề Bài Chiến Lược Trọng Tâm */}
+        <form className="hud-strategic-bar" onSubmit={handleStartDebateSubmit}>
+          <Search size={16} color="#38bdf8" style={{ flexShrink: 0 }} />
+          <input
+            type="text"
+            className="strategic-input"
+            placeholder="Nhập vấn đề chiến lược F&B & XNK cần Ban Giám Đốc họp tranh luận..."
+            value={inputProblem}
+            onChange={(e) => setInputProblem(e.target.value)}
+            disabled={isDebating}
+          />
+          <button
+            type="submit"
+            className="strategic-submit-btn"
+            disabled={isDebating || !inputProblem.trim()}
+          >
+            {isDebating ? (
+              <>
+                <Flame size={14} className="animate-spin" color="#fef08a" />
+                <span>Đang Tranh Luận...</span>
+              </>
+            ) : (
+              <>
+                <Send size={13} />
+                <span>Họp Ban Giám Đốc</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Cấu hình Keys & Báo Cáo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {activeDebateSession?.consensusReport && (
+            <button
+              className="strategic-submit-btn"
+              style={{
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)'
+              }}
+              onClick={() => onOpenReportModal(activeDebateSession.consensusReport!)}
+              title="Xem Báo Cáo Thống Nhất Chiến Lược của phiên họp hiện tại"
+            >
+              <FileText size={14} />
+              <span>Xem Báo Cáo</span>
+            </button>
+          )}
+
+          <button
+            className="api-key-config-btn"
+            onClick={onOpenApiKeyModal}
+            title="Cấu hình 3 Gemini API Key độc lập cho COO Bác Nam, CFO Bác Thắng, CRO Bác Hoàng"
+          >
+            <Key size={14} color="#38bdf8" />
+            <span>3 Gemini Keys</span>
+          </button>
         </div>
       </header>
 
-      {/* Vùng giữa: Sidebar bên trái & Hộp thoại bên phải */}
+      {/* Vùng giữa: Sidebar bên trái (Nhật ký Chat & Lịch sử phiên họp) */}
       <div className="hud-middle-layout">
-        {/* 2. Sidebar bên trái: Danh sách và điều khiển Agent */}
-        <aside className="hud-sidebar">
-          <div className="hud-panel-title">
-            <Bot size={16} color="#38bdf8" />
-            <span>ĐỘI NGŨ AI AGENT (4 NHÂN SỰ)</span>
+        <aside className="hud-sidebar" style={{ width: '380px' }}>
+          {/* Header Hội Đồng Lãnh Đạo */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="hud-panel-title">
+              <Sparkles size={16} color="#38bdf8" />
+              <span>BAN GIÁM ĐỐC C-SUITE (3 GIÁM ĐỐC)</span>
+            </div>
+
+            {/* Quick Director Selector Badges */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+              {agents.map((agent) => {
+                const isSelected = agent.id === selectedAgentId;
+                return (
+                  <div
+                    key={agent.id}
+                    onClick={() => onSelectAgent(agent.id)}
+                    style={{
+                      background: isSelected ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.6)',
+                      border: `1.5px solid ${isSelected ? agent.color : 'rgba(255, 255, 255, 0.08)'}`,
+                      borderRadius: '8px',
+                      padding: '6px 8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '2px',
+                      transition: 'all 0.15s ease'
+                    }}
+                    title={`${agent.role} (Nhấp để chọn trong 3D)`}
+                  >
+                    <span style={{ fontSize: '15px' }}>{agent.thoughtIcon}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: agent.color }}>
+                      {agent.codename || agent.name}
+                    </span>
+                    <span style={{ fontSize: '9px', color: '#94a3b8' }}>
+                      {agent.id === 'agent_coo' ? 'COO Vận Hành' : agent.id === 'agent_cfo' ? 'CFO Tài Chính' : 'CRO Rủi Ro'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Tabs: Tranh Luận Trực Tiếp vs Lịch Sử Phiên Họp */}
+            <div className="hud-tab-header">
+              <button
+                className={`hud-tab-btn ${activeTab === 'live' ? 'active' : ''}`}
+                onClick={() => setActiveTab('live')}
+              >
+                <MessageSquare size={13} />
+                <span>Tranh Luận Trực Tiếp</span>
+              </button>
+              <button
+                className={`hud-tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+                onClick={() => setActiveTab('history')}
+              >
+                <History size={13} />
+                <span>Lịch Sử ({pastSessions.length})</span>
+              </button>
+            </div>
           </div>
 
-          <div className="hud-agent-list">
-            {agents.map((agent) => {
-              const isSelected = agent.id === selectedAgentId;
-              return (
+          {/* TAB 1: TRANH LUẬN TRỰC TIẾP (ƯU TIÊN MỚI NHẤT LÊN TRƯỚC, CHỈ HIỆN CÔNG VIỆC) */}
+          {activeTab === 'live' && (
+            <div className="hud-work-debate-list">
+              {isDebating && (
                 <div
-                  key={agent.id}
-                  onClick={() => onSelectAgent(agent.id)}
-                  className={`hud-agent-card ${isSelected ? 'selected' : ''}`}
                   style={{
-                    borderLeft: `4px solid ${agent.color}`
+                    background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.25), rgba(37, 99, 235, 0.25))',
+                    border: '1px solid #38bdf8',
+                    borderRadius: '8px',
+                    padding: '8px 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'pulse 1.8s infinite'
                   }}
                 >
-                  <div className="hud-agent-card-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className="hud-agent-avatar" style={{ backgroundColor: `${agent.color}22`, borderColor: agent.color }}>
-                        {agent.thoughtIcon}
-                      </span>
-                      <div>
-                        <span className="hud-agent-name">{agent.codename}</span>
-                        <span className="hud-agent-subname"> ({agent.name})</span>
+                  <Flame size={16} color="#38bdf8" />
+                  <div style={{ fontSize: '11px', color: '#e0f2fe', fontWeight: 700 }}>
+                    Đang họp & phản biện Vòng {activeDebateSession?.currentRound || 1}/3...
+                    <br />
+                    <span style={{ fontSize: '10px', color: '#93c5fd', fontWeight: 400 }}>
+                      Cả 3 Giám Đốc đang tranh luận kịch liệt tại bàn họp
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {workDebateLogs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 10px', color: '#64748b', fontSize: '11.5px' }}>
+                  <HelpCircle size={24} style={{ margin: '0 auto 8px', opacity: 0.6 }} />
+                  Chưa có phiên tranh luận nào.
+                  <br />
+                  Nhập vấn đề chiến lược F&B & XNK ở thanh trên để Ban Giám Đốc họp bàn phản biện!
+                </div>
+              ) : (
+                workDebateLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="hud-work-debate-card"
+                    style={{ borderLeft: `3px solid ${log.senderColor}` }}
+                  >
+                    {/* Header Card */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '14px' }}>{log.icon}</span>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: log.senderColor }}>
+                          {log.senderName}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {log.round && (
+                          <span
+                            className="badge-round"
+                            style={{
+                              backgroundColor: `${log.senderColor}22`,
+                              color: log.senderColor,
+                              border: `1px solid ${log.senderColor}55`
+                            }}
+                          >
+                            Vòng {log.round}
+                          </span>
+                        )}
+                        <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-mono)', color: '#64748b' }}>
+                          {log.timestamp}
+                        </span>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {agent.blessed && (
-                        <span
-                          title="Đã được Phật phù hộ: 0% Bug, 100% Green Test!"
-                          style={{
-                            fontSize: '9.5px',
-                            color: '#fef08a',
-                            backgroundColor: 'rgba(245, 158, 11, 0.25)',
-                            border: '1px solid #fbbf24',
-                            padding: '1px 5px',
-                            borderRadius: '6px',
-                            fontWeight: 700
-                          }}
-                        >
-                          🙏 0% Bug
-                        </span>
-                      )}
-                      <span className={`hud-status-badge ${agent.status}`}>
-                        {agent.status === 'working'
-                          ? 'Typing'
-                          : agent.status === 'moving'
-                          ? 'Walking'
-                          : agent.status === 'praying'
-                          ? '🙏 Praying'
-                          : 'Idle'}
+                    {/* Message Body */}
+                    <div style={{ fontSize: '11.5px', color: '#e2e8f0', lineHeight: 1.5 }}>
+                      {log.message}
+                    </div>
+
+                    {/* Citations & Predictions Badges */}
+                    {(log.citations && log.citations.length > 0) || (log.predictions && log.predictions.length > 0) ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '2px' }}>
+                        {log.citations && log.citations.length > 0 && (
+                          <span className="badge-citation-tag" title={log.citations.join(' | ')}>
+                            <Search size={10} />
+                            <span>{log.citations.length} Dẫn Chứng Thực Tế</span>
+                          </span>
+                        )}
+                        {log.predictions && log.predictions.length > 0 && (
+                          <span className="badge-prediction-tag" title={log.predictions.join(' | ')}>
+                            <Sparkles size={10} />
+                            <span>{log.predictions.length} Dự Báo 40 Năm</span>
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: LỊCH SỬ PHIÊN HỌP (LƯU TRONG LOCALSTORAGE) */}
+          {activeTab === 'history' && (
+            <div className="hud-work-debate-list">
+              {pastSessions.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 10px', color: '#64748b', fontSize: '11.5px' }}>
+                  <History size={24} style={{ margin: '0 auto 8px', opacity: 0.6 }} />
+                  Chưa có lịch sử phiên họp nào được lưu.
+                </div>
+              ) : (
+                pastSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="hud-work-debate-card"
+                    style={{ borderLeft: '3px solid #10b981' }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '10px', color: '#34d399', fontWeight: 700 }}>
+                        {session.createdAt}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '9.5px',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          background: 'rgba(16, 185, 129, 0.2)',
+                          color: '#6ee7b7'
+                        }}
+                      >
+                        Đã Thống Nhất
                       </span>
                     </div>
-                  </div>
 
-                  <div className="hud-agent-role">{agent.role}</div>
-
-                  <div className="hud-agent-task">
-                    <Terminal size={12} color="#94a3b8" />
-                    <span className="hud-task-text">{agent.currentTask}</span>
-                  </div>
-
-                  {/* Thanh tiến độ */}
-                  {agent.status === 'working' && (
-                    <div className="hud-progress-bar">
-                      <div
-                        className="hud-progress-fill"
-                        style={{ width: `${agent.progress}%`, backgroundColor: agent.color }}
-                      />
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', lineHeight: 1.4 }}>
+                      {session.title}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
 
-          {/* Bảng điều phối nhanh trạm làm việc cho Agent đang chọn */}
-          {selectedAgent && (
-            <div className="hud-quick-dispatch">
-              <div className="hud-panel-title small">
-                <Layers size={14} color="#f59e0b" />
-                <span>ĐIỀU PHỐI: {(selectedAgent.codename || selectedAgent.name).toUpperCase()}</span>
-              </div>
-              <div className="hud-station-buttons">
-                {workstations.map((st) => (
-                  <button
-                    key={st.id}
-                    className="hud-station-btn"
-                    onClick={() => onDispatchToStation(selectedAgent.id, st.id)}
-                  >
-                    <Play size={10} />
-                    <span>{st.name}</span>
-                  </button>
-                ))}
-              </div>
+                    {session.consensusReport && (
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          color: '#fbbf24',
+                          fontWeight: 600,
+                          background: 'rgba(245, 158, 11, 0.1)',
+                          padding: '4px 6px',
+                          borderRadius: '4px'
+                        }}
+                      >
+                        Quyết định: {session.consensusReport.finalDecision}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                      <button
+                        className="btn-secondary"
+                        style={{ padding: '4px 8px', fontSize: '10.5px' }}
+                        onClick={() => {
+                          if (session.consensusReport) {
+                            onOpenReportModal(session.consensusReport);
+                          }
+                        }}
+                      >
+                        <FileText size={12} />
+                        <span>Xem Báo Cáo</span>
+                        <ChevronRight size={12} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </aside>
 
-        {/* 3. Hộp thoại tin nhắn & Suy nghĩ trực tiếp (Real-time Dialogue Feed phong cách Pixel-Agents) */}
-        {showLogs && (
+        {/* Khung chat phụ bên phải: Tiếng Nói Văn Phòng (Tùy chọn mở để xem tin tức, meme, dâng hương) */}
+        {showAmbientFeed && (
           <aside className="hud-dialogue-box">
             <div className="hud-dialogue-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <MessageSquare size={14} color="#f59e0b" />
-                <span className="hud-dialogue-title">TIẾNG NÓI VĂN PHÒNG (DIALOGUE FEED)</span>
+                <span className="hud-dialogue-title">TIẾNG NÓI ĐỜI THƯỜNG (AMBIENT)</span>
               </div>
               <button
                 className="hud-dialogue-toggle"
-                onClick={() => setShowLogs(false)}
-                title="Thu gọn nhật ký"
+                onClick={() => setShowAmbientFeed(false)}
+                title="Đóng hộp thoại"
               >
                 ✕
               </button>
             </div>
 
             <div className="hud-dialogue-messages">
-              {dialogueLogs.map((log) => (
-                <div key={log.id} className="hud-dialogue-item">
-                  <span className="hud-dialogue-time">{log.timestamp}</span>
-                  <span
-                    className="hud-dialogue-sender"
-                    style={{ color: log.senderColor }}
-                  >
-                    {log.icon} {log.senderName}:
-                  </span>
-                  <span className="hud-dialogue-text">{log.message}</span>
-                </div>
-              ))}
+              {dialogueLogs
+                .filter((l) => l.category !== 'work')
+                .slice(-15)
+                .map((log) => (
+                  <div key={log.id} className="hud-dialogue-item">
+                    <span className="hud-dialogue-time">{log.timestamp}</span>
+                    <span className="hud-dialogue-sender" style={{ color: log.senderColor }}>
+                      {log.icon} {log.senderName}:
+                    </span>
+                    <span className="hud-dialogue-text">{log.message}</span>
+                  </div>
+                ))}
             </div>
           </aside>
         )}
       </div>
 
-      {/* 4. Thanh điều khiển phía dưới đáy (Bottom Control Bar) */}
+      {/* 4. Thanh điều khiển phía dưới đáy (Footer) */}
       <footer className="hud-footer">
         <div className="hud-tip">
           <Compass size={16} color="#38bdf8" />
           <span>
-            <strong>Hướng dẫn:</strong> Chọn 1 Agent, sau đó <strong>click bất kỳ vị trí nào trên sàn</strong> để di chuyển. Nhấp vào <strong>GitCat 🐱</strong> để vuốt ve!
+            <strong>Hướng dẫn:</strong> Nhập bài toán ở thanh trên để 3 Giám Đốc họp tranh luận. Click vào sàn để di chuyển, click <strong>GitCat 🐱</strong> để vuốt ve!
           </span>
         </div>
 
         <div className="hud-actions">
-          {/* Nút Toàn Đội Bái Phật Trang Nghiêm */}
+          {/* Nút bật tắt feed chuyện phiếm */}
+          <button
+            className="hud-action-btn cat"
+            onClick={() => setShowAmbientFeed((prev) => !prev)}
+            title="Bật/tắt hộp thoại chuyện phiếm & đời thường"
+          >
+            <MessageSquare size={14} />
+            <span>{showAmbientFeed ? 'Ẩn Thoại Phụ' : 'Hiện Thoại Phụ'}</span>
+          </button>
+
+          {/* Nút Toàn Đội Bái Phật */}
           <button
             className="hud-action-btn shrine"
             onClick={onTeamPrayer}
-            title="Cả đội ngũ Agent cùng dâng hương bái Phật cầu giải hạn mọi lỗi bug!"
+            title="Ban Giám Đốc dâng hương bái Phật cầu an lạc, 0% rủi ro!"
             style={{
               background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35))',
               border: '1.5px solid #fbbf24',
@@ -246,14 +454,14 @@ export function DashboardHUD({
             }}
           >
             <span>🙏</span>
-            <span>Toàn Đội Bái Phật</span>
+            <span>Bái Phật Cầu An</span>
           </button>
 
-          {/* Nút Toàn Đội Cầu Nguyện Trước Chúa & Thánh Giá */}
+          {/* Nút Cầu Nguyện Chúa */}
           <button
             className="hud-action-btn shrine"
             onClick={onTeamChristianPrayer}
-            title="Cả đội ngũ Agent cùng đến trước Thánh Giá Chúa cầu nguyện bình an & vững bền!"
+            title="Ban Giám Đốc cầu nguyện trước Thánh Giá Chúa!"
             style={{
               background: 'linear-gradient(135deg, rgba(253, 224, 71, 0.25), rgba(202, 138, 4, 0.35))',
               border: '1.5px solid #fde047',
@@ -268,7 +476,7 @@ export function DashboardHUD({
           <button
             className="hud-action-btn shrine"
             onClick={onCastBuddhaMiracle}
-            title="Đức Phật hiển linh, phóng chuỗi tràng hạt bồ đề bay xé gió qua phòng họp!"
+            title="Đức Phật phóng chuỗi tràng hạt bồ đề qua phòng họp!"
             style={{
               background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.3), rgba(180, 83, 9, 0.4))',
               border: '1.5px solid #f97316',
@@ -283,7 +491,7 @@ export function DashboardHUD({
           <button
             className="hud-action-btn shrine"
             onClick={onCastChristianMiracle}
-            title="Thánh Giá hiển linh, ban Đinh Thánh bay vèo qua phòng họp để các Agent né tránh!"
+            title="Thánh Giá ban Đinh Thánh qua phòng họp!"
             style={{
               background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(161, 98, 7, 0.4))',
               border: '1.5px solid #fbbf24',
@@ -301,17 +509,17 @@ export function DashboardHUD({
             title="Tương tác với chú mèo văn phòng GitCat"
           >
             <Heart size={15} color="#ea580c" />
-            <span>Vuốt ve GitCat 🐱</span>
+            <span>GitCat 🐱</span>
           </button>
 
-          {/* Nút giả lập Backend Push Event */}
+          {/* Nút giả lập sự kiện trao đổi */}
           <button
             className="hud-action-btn primary"
             onClick={onSimulateBackendEvent}
-            title="Mô phỏng tín hiệu thay đổi trạng thái từ backend đẩy về"
+            title="Mô phỏng trao đổi công việc nhanh giữa 3 Giám Đốc"
           >
             <Sparkles size={15} />
-            <span>Sự Kiện Backend</span>
+            <span>Thảo Luận Nhanh</span>
           </button>
         </div>
       </footer>

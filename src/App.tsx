@@ -1,12 +1,16 @@
 /**
  * @file App.tsx
  * @description Component trung tâm liên kết Scene 3D Isometric và Dashboard HUD điều khiển AI Agents.
+ * Tích hợp Hội Đồng Lãnh Đạo C-Suite (COO Bác Nam, CFO Bác Thắng, CRO Bác Hoàng),
+ * Modal cấu hình 3 Gemini AI Key và Modal Báo Cáo Thống Nhất Chiến Lược.
  */
 
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useAgentStore } from './hooks/useAgentStore';
 import { OfficeScene } from './components/OfficeScene';
 import { DashboardHUD } from './components/DashboardHUD';
+import { ApiKeyModal } from './components/ApiKeyModal';
+import { ExecutiveDebateModal } from './components/ExecutiveDebateModal';
 import { getRandomGitCatReaction } from './data/dialogueBank';
 
 export function App() {
@@ -22,6 +26,12 @@ export function App() {
     christianSpeech,
     buddhaMiracleActive,
     christianMiracleActive,
+    isDebating,
+    activeDebateSession,
+    pastSessions,
+    consensusModalReport,
+    setConsensusModalReport,
+    startExecutiveDebate,
     selectAgent,
     setAgentTarget,
     completeMovement,
@@ -34,6 +44,8 @@ export function App() {
     simulateBackendEvent,
     addDialogue
   } = useAgentStore();
+
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
   /**
    * Xử lý khi người dùng click chuột vào sàn nhà (Click-to-Move)
@@ -58,7 +70,7 @@ export function App() {
   );
 
   /**
-   * Tương tác với chú mèo văn phòng GitCat 🐱 (Phát sinh phản ứng ngẫu nhiên dí dỏm)
+   * Tương tác với chú mèo văn phòng GitCat 🐱
    */
   const handlePetCat = useCallback(() => {
     const reaction = getRandomGitCatReaction();
@@ -66,7 +78,9 @@ export function App() {
       'GitCat',
       '#ea580c',
       reaction,
-      '🐾'
+      '🐾',
+      undefined,
+      'casual'
     );
   }, [addDialogue]);
 
@@ -94,20 +108,37 @@ export function App() {
         onDodgeTrigger={triggerAgentDodge}
       />
 
-      {/* 2. Giao diện HUD giám sát và ra lệnh cho AI Agents */}
+      {/* 2. Giao diện HUD giám sát và điều hành Ban Giám Đốc C-Suite */}
       <DashboardHUD
         agents={agents}
-        workstations={workstations}
         selectedAgentId={selectedAgentId}
         dialogueLogs={dialogueLogs}
+        isDebating={isDebating}
+        activeDebateSession={activeDebateSession}
+        pastSessions={pastSessions}
         onSelectAgent={selectAgent}
-        onDispatchToStation={dispatchToWorkstation}
+        onStartDebate={startExecutiveDebate}
+        onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+        onOpenReportModal={(report) => setConsensusModalReport(report)}
         onSimulateBackendEvent={simulateBackendEvent}
         onPetCat={handlePetCat}
         onTeamPrayer={teamPrayer}
         onTeamChristianPrayer={christianPrayer}
         onCastBuddhaMiracle={castBuddhaMiracle}
         onCastChristianMiracle={castChristianMiracle}
+      />
+
+      {/* 3. Modal Cấu Hình 3 Gemini API Key Độc Lập */}
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setIsApiKeyModalOpen(false)}
+      />
+
+      {/* 4. Modal Hiển Thị Báo Cáo Thống Nhất Chiến Lược (Consensus Report) */}
+      <ExecutiveDebateModal
+        report={consensusModalReport}
+        isOpen={!!consensusModalReport}
+        onClose={() => setConsensusModalReport(null)}
       />
     </div>
   );
