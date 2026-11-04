@@ -405,6 +405,7 @@ export function BuddhaShrine({
           position={[0, 2.3, 0]}
           center
           distanceFactor={14}
+          zIndexRange={[50, 0]}
           style={{ pointerEvents: 'auto' }}
         >
           <div
@@ -448,6 +449,7 @@ export function BuddhaShrine({
           position={[0, 2.5, 0]}
           center
           distanceFactor={13}
+          zIndexRange={[50, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <div className="thought-bubble-wrapper">

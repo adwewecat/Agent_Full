@@ -352,6 +352,7 @@ export function ChristianShrine({
           position={[0, 2.2, 0]}
           center
           distanceFactor={16}
+          zIndexRange={[50, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <div
@@ -383,6 +384,7 @@ export function ChristianShrine({
           position={[0, 2.5, 0]}
           center
           distanceFactor={13}
+          zIndexRange={[50, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <div className="thought-bubble-wrapper">

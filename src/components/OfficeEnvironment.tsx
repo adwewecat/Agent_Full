@@ -305,6 +305,7 @@ function WindowWithMuse() {
           position={[0, 1.3, 0.1]}
           center
           distanceFactor={16}
+          zIndexRange={[50, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <div
@@ -413,7 +414,7 @@ function WindowsAndDoors() {
             <planeGeometry args={[0.56, 0.13]} />
             <meshBasicMaterial color="#0284c7" />
           </mesh>
-          <Html position={[0, 0, 0.02]} center distanceFactor={14} style={{ pointerEvents: 'none' }}>
+          <Html position={[0, 0, 0.02]} center distanceFactor={14} zIndexRange={[50, 0]} style={{ pointerEvents: 'none' }}>
             <div
               style={{
                 color: '#ffffff',

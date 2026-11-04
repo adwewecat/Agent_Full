@@ -58,6 +58,7 @@ export function Workstation({ data, onSelectStation }: WorkstationProps) {
           position={[0, 1.4, 0]}
           center
           distanceFactor={16}
+          zIndexRange={[50, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <div

@@ -169,7 +169,7 @@ export function GitCat({ onPetCat }: GitCatProps) {
       </mesh>
 
       {/* Bong bóng biểu cảm khi được vuốt ve hoặc đang đi dạo */}
-      <Html position={[0, 0.9, 0]} center distanceFactor={14} style={{ pointerEvents: 'none' }}>
+      <Html position={[0, 0.9, 0]} center distanceFactor={14} zIndexRange={[50, 0]} style={{ pointerEvents: 'none' }}>
         <div
           style={{
             background: 'rgba(255, 255, 255, 0.95)',

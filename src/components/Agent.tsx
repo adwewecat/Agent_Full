@@ -347,6 +347,7 @@ function AgentModel({
           position={[0, isSeated ? 2.35 : 2.65, 0]}
           center
           distanceFactor={12}
+          zIndexRange={[50, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <div
@@ -411,6 +412,7 @@ function AgentModel({
           position={[0, isSeated ? 2.15 : 2.45, 0]}
           center
           distanceFactor={14}
+          zIndexRange={[50, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <div className="thought-bubble-wrapper">
@@ -440,6 +442,7 @@ function AgentModel({
         position={[0, isSeated ? 1.45 : 1.7, 0]}
         center
         distanceFactor={14}
+        zIndexRange={[50, 0]}
         style={{ pointerEvents: 'none' }}
       >
         <div

@@ -5,7 +5,7 @@
  * và phân định minh bạch tuyệt đối giữa [DẪN CHỨNG / SỐ LIỆU THỰC TẾ] và [DỰ ĐOÁN CHUYÊN GIA 40 NĂM].
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   CheckCircle,
   TrendingUp,
@@ -27,6 +27,13 @@ interface ExecutiveDebateModalProps {
 
 export function ExecutiveDebateModal({ report, isOpen, onClose }: ExecutiveDebateModalProps) {
   const [copied, setCopied] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && bodyRef.current) {
+      bodyRef.current.scrollTop = 0;
+    }
+  }, [isOpen]);
 
   if (!isOpen || !report) return null;
 
@@ -127,7 +134,7 @@ ${report.expertPredictions.map((p) => `- [DỰ BÁO 40 NĂM] ${p}`).join('\n')}
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="modal-body" style={{ overflowY: 'auto', paddingRight: '6px' }}>
+        <div ref={bodyRef} className="modal-body" style={{ overflowY: 'auto', paddingRight: '6px' }}>
           {/* 1. Problem Statement */}
           <div
             style={{

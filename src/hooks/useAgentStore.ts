@@ -1191,6 +1191,9 @@ export function useAgentStore() {
    */
   useEffect(() => {
     const timer = setInterval(() => {
+      // Khi đang họp tranh luận hoặc khi đang hiển thị popup báo cáo thì tạm dừng thần tích
+      if (isDebatingRef.current || consensusModalReport) return;
+
       if (Math.random() > 0.5) {
         castBuddhaMiracle();
       } else {
@@ -1199,7 +1202,7 @@ export function useAgentStore() {
     }, 28000);
 
     return () => clearInterval(timer);
-  }, [castBuddhaMiracle, castChristianMiracle]);
+  }, [castBuddhaMiracle, castChristianMiracle, consensusModalReport]);
 
   /**
    * Ambient Chatter giãn cách 45s (chống lặp)
